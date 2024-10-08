@@ -12,11 +12,13 @@ def agent_portrayal(agent):
     if agent.battery_level > 50:
         portrayal["Color"] = ["#00FF00", "#00CC00", "#009900"]
         portrayal["Shape"] = "circle"
+        portrayal["Filled"] = True
         portrayal["r"] = 0.8
         portrayal["Layer"] = 0
     else:
         portrayal["Color"] = ["#FF0000", "#CC0000", "#990000"]
         portrayal["Shape"] = "circle"
+        portrayal["Filled"] = True
         portrayal["r"] = 0.8
         portrayal["Layer"] = 0
     return portrayal
