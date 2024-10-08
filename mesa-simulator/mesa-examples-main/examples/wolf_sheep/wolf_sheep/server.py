@@ -73,6 +73,9 @@ model_params = {
 }
 
 server = mesa.visualization.ModularServer(
-    WolfSheep, [canvas_element, chart_element], "Wolf Sheep Predation", model_params
+    WolfSheep, 
+    [canvas_element, chart_element], 
+    "Wolf Sheep Predation", 
+    model_params
 )
 server.port = 8521
