@@ -20,5 +20,9 @@ class Bike(RandomWalker):
         """
         A model step. Move, ... .
         """
-        self.random_move()
-        living = True
+
+        # a bike can only move if it has battery
+        if self.battery_level >= 1:
+            self.random_move()
+            self.battery_level -= 1
+            
