@@ -1,22 +1,23 @@
 import mesa
+import pandas as pd
+from mesa.time import RandomActivation
 
-from .agents import Bike
+from .agents import Bike, StationAgent
+
+# Step 1: Load CSV with lat/lng values
+df = pd.read_csv("./dataset/all_stations.csv")
 
 class SharedMobilityModel(mesa.Model):
 
-    height = 20
-    width = 20
-
     initial_bike = 10
 
-    def __init__(self, width=20, height=20, initial_bike = 10):
+    def __init__(self, width, height, initial_bike = 10):
         super().__init__()
         # Set parameters
-        self.width = width
-        self.height = height
         self.initial_bike = initial_bike
 
-        self.grid = mesa.space.MultiGrid(self.width, self.height, torus=True)
+        self.grid = mesa.space.MultiGrid(width, height, torus=True)
+        self.schedule = RandomActivation(self)
 
         # Data collection to track the number of vehicles
         collectors = {
@@ -24,16 +25,21 @@ class SharedMobilityModel(mesa.Model):
         }
         self.datacollector = mesa.DataCollector(collectors)
 
-
-        # Create bike
+        # Create bikes
         for i in range(self.initial_bike):
             battery_level = self.random.randint(50, 100)
             bike = Bike(self, True, battery_level)
 
             # Place agents randomly on the grid
-            x = self.random.randrange(self.width)
-            y = self.random.randrange(self.height)
+            x = self.random.randrange(width)
+            y = self.random.randrange(height)
             self.grid.place_agent(bike, (x, y))
+
+        # Create station agents from the CSV
+        for idx, row in df.iterrows():
+            agent = StationAgent(idx, self, row['lat'], row['lng'])
+            self.grid.place_agent(agent, (agent.grid_x, agent.grid_y))
+            self.schedule.add(agent)
 
         self.running = True
         self.datacollector.collect(self)
@@ -45,6 +51,10 @@ class SharedMobilityModel(mesa.Model):
 
         # collect data
         self.datacollector.collect(self)
+        
+        # used in BikeStationModel
+        #self.schedule.step()
+        
 
     def run_model(self, step_count=200):
         for i in range(step_count):

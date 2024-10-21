@@ -10,35 +10,44 @@ def agent_portrayal(agent):
     
     portrayal = {}
 
-    if agent.battery_level > 50: # good batery level
-        portrayal["Color"] = ["#00FF00", "#00CC00", "#009900"]
+    if agent.type == "bike":
+        if agent.battery_level > 50: # good batery level
+            portrayal["Color"] = ["#00FF00", "#00CC00", "#009900"]
+            portrayal["Shape"] = "circle"
+            portrayal["Filled"] = True
+            portrayal["r"] = 0.8
+            portrayal["Layer"] = 0
+        elif agent.battery_level == 0: # no batery at all
+            portrayal["Color"] = "black"
+            portrayal["Shape"] = "circle"
+            portrayal["Filled"] = True
+            portrayal["r"] = 0.8
+            portrayal["Layer"] = 0
+        else: # bad batery level
+            portrayal["Color"] = ["#FF0000", "#CC0000", "#990000"]
+            portrayal["Shape"] = "circle"
+            portrayal["Filled"] = True
+            portrayal["r"] = 0.8
+            portrayal["Layer"] = 0
+
+    elif agent.type == "station":
+        portrayal["Color"] = "blue"
         portrayal["Shape"] = "circle"
         portrayal["Filled"] = True
+        portrayal["Layer"] = 1
         portrayal["r"] = 0.8
-        portrayal["Layer"] = 0
-    elif agent.battery_level == 0: # no batery at all
-        portrayal["Color"] = "black"
-        portrayal["Shape"] = "circle"
-        portrayal["Filled"] = True
-        portrayal["r"] = 0.8
-        portrayal["Layer"] = 0
-    else: # bad batery level
-        portrayal["Color"] = ["#FF0000", "#CC0000", "#990000"]
-        portrayal["Shape"] = "circle"
-        portrayal["Filled"] = True
-        portrayal["r"] = 0.8
-        portrayal["Layer"] = 0
+
     return portrayal
 
 # Set up the grid for visualization
-grid = CanvasGrid(agent_portrayal, 10, 10, 500, 500)
+grid = CanvasGrid(agent_portrayal, 100, 100, 500, 500)
 
 # add chart element here later
 
 # Our model parameters
 model_params = {
-    "width": 10, 
-    "height": 10, 
+    "width": 100, 
+    "height": 100, 
     "initial_bike": mesa.visualization.Slider(
         "Initial number of Bikes", 10, 10, 100
     ),
