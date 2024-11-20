@@ -1,15 +1,15 @@
 # station_agent.py
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour
+from spade.message import Message
 
 class StationAgent(Agent):
-    class MonitorBehaviour(CyclicBehaviour):
+    class ReceiveBikeUpdates(CyclicBehaviour):
         async def run(self):
-            print(f"{self.agent.name} is monitoring bikes.")
-            # Additional logic to monitor bike availability, check-ins, etc.
-            await self.agent.pause(10)  # pause for 10 seconds to simulate real-time updates
-
+            msg = await self.receive(timeout=10)
+            if msg:
+                print(f"[{self.agent.name}] Received: {msg.body}")
+    
     async def setup(self):
-        print(f"Station agent {self.name} starting...")
-        self.add_behaviour(self.MonitorBehaviour())
- 
+        print(f"{self.name} is starting.")
+        self.add_behaviour(self.ReceiveBikeUpdates())
