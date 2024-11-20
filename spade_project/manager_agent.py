@@ -1,6 +1,7 @@
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour
 from spade.message import Message
+from common import bike_positions
 
 class ManagerAgent(Agent):
     class UpdatePositionBehaviour(CyclicBehaviour):
@@ -11,6 +12,7 @@ class ManagerAgent(Agent):
                 bike_id, lat, lng = data[0], float(data[1]), float(data[2])
                 self.agent.bike_positions[bike_id] = (lng, lat)  # Update bike_positions (note lng, lat order)
                 print(f"[Manager] Updated position of {bike_id} to ({lat}, {lng})")
+                bike_positions[bike_id] = (lng, lat)  # Update common bike_positions
 
     async def setup(self):
         self.add_behaviour(self.UpdatePositionBehaviour())

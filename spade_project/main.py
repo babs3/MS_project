@@ -6,20 +6,39 @@ from manager_agent import ManagerAgent
 import matplotlib.pyplot as plt
 import asyncio
 import matplotlib.animation as animation
+from common import bike_positions, stations_data
 
-# Shared data structure to store bike positions
-bike_positions = {}
+# Set up the plot
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.scatter(stations_data['lng'], stations_data['lat'], color='blue', label='Stations')
+for _, row in stations_data.iterrows():
+    ax.text(row['lng'], row['lat'], row['station_name'], fontsize=9, ha='right')
+ax.set_xlabel('Longitude')
+ax.set_ylabel('Latitude')
+ax.set_title('Bike Stations and Bikes')
+ax.set_xlim(min(stations_data['lng']) - 0.01, max(stations_data['lng']) + 0.01)
+ax.set_ylim(min(stations_data['lat']) - 0.01, max(stations_data['lat']) + 0.01)
+
+# Plot for bikes (empty at first)
+bikes_plot, = ax.plot([], [], 'ro', label='Bikes')  # Red dots for bikes
+ax.legend()
+
+# Maximize the Matplotlib window
+#manager = plt.get_current_fig_manager()
+#manager.window.showMaximized()  # Maximize window to full screen
+
+# Function to update the plot with new bike positions
+def update_plot():
+    if bike_positions:
+        #print("Updating plot...")
+        lons, lats = zip(*bike_positions.values())  # Get longitudes and latitudes
+        bikes_plot.set_data(lons, lats)  # Update the data for bikes on the plot
+        plt.draw()  # Redraw the plot
+
 
 
 async def main():
-    # Load station data
-    stations_data = pd.DataFrame({
-        'station_id': [0, 1],
-        'station_name': ['station_0', 'station_1'],
-        'lat': [40.7128, 40.7064],
-        'lng': [-74.0060, -74.0099]
-    })
-
+    
     # Initialize ManagerAgent
     manager_jid = "ms_project@jabbim.com"
     manager_password = "ms_project"  # Replace with actual password
@@ -48,51 +67,12 @@ async def main():
     for bike in bikes:
         await bike.start()
 
-    # Set up the plot
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax.scatter(stations_data['lng'], stations_data['lat'], color='blue', label='Stations')
-    for _, row in stations_data.iterrows():
-        ax.text(row['lng'], row['lat'], row['station_name'], fontsize=9, ha='right')
-    ax.set_xlabel('Longitude')
-    ax.set_ylabel('Latitude')
-    ax.set_title('Bike Stations and Bikes')
-    ax.set_xlim(min(stations_data['lng']) - 0.01, max(stations_data['lng']) + 0.01)
-    ax.set_ylim(min(stations_data['lat']) - 0.01, max(stations_data['lat']) + 0.01)
-
-    bikes_plot, = ax.plot([], [], 'ro', label='Bikes')  # Red dots for bikes
-    ax.legend()
-
-    # Resize the window
-    manager = plt.get_current_fig_manager()
-    manager.resize(*manager.window.maxsize())  # Maximize window size
-    # Alternatively, for full screen:
-    # manager.full_screen_toggle()
-
-    # Function to update the plot
-    def update_plot(frame):
-        if bike_positions:
-            print("Updating plot with bike positions:", bike_positions)  # Debugging
-            lons, lats = zip(*bike_positions.values())
-            bikes_plot.set_data(lons, lats)
-        return bikes_plot,
-
-    # Create the animation
-    ani = animation.FuncAnimation(
-        fig, 
-        update_plot, 
-        interval=1000, 
-        save_count=1000,  # Set a reasonable number for caching, or disable it as below
-        cache_frame_data=False  # Explicitly disable caching of frame data
-    )
-
-    # Show the plot
-    plt.show()
-
-
-    # Run until interrupted
+    # Main loop to update positions periodically
     try:
         while True:
-            await asyncio.sleep(1)  # Keep the event loop alive
+            update_plot()  # Manually update the plot
+            plt.pause(1)  # Pause to allow the plot to update every 1 second
+            await asyncio.sleep(1)  # Wait before updating again
     except KeyboardInterrupt:
         print("Simulation stopped by user.")
     finally:

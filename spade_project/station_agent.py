@@ -3,6 +3,7 @@ from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour
 from spade.message import Message
 
+
 class StationAgent(Agent):
     class ReceiveBikeUpdates(CyclicBehaviour):
         async def run(self):
