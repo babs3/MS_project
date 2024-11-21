@@ -7,44 +7,67 @@ import matplotlib.image as mpimg
 bike_icon = mpimg.imread('./images/bike_icon.png')  # Path to your bike icon image
 station_icon = mpimg.imread('./images/station_icon.png')  # Path to your station icon image
 
-# Set up the plot
-fig, ax = plt.subplots(figsize=(8, 6))
+import plotly.graph_objects as go
+import pandas as pd
+import plotly.express as px
 
-# Plot the line connecting stations
-#station_0 = stations_data[stations_data['station_name'] == 'station_0']
-#station_1 = stations_data[stations_data['station_name'] == 'station_1']
+# Assuming 'stations_data' is already loaded
+# bike_positions should be a dictionary like: {bike_id: (lng, lat)}
 
-# Extract coordinates for the line
-#path_lngs = [station_0['lng'].values[0], station_1['lng'].values[0]]
-#path_lats = [station_0['lat'].values[0], station_1['lat'].values[0]]
+# Create Plotly figure for map
+fig = go.Figure()
 
-# Draw the line
-#ax.plot(path_lngs, path_lats, linestyle='-', color='gray', label='Path Between Stations')
+# Add station icons (scatter points for stations)
+fig.add_trace(go.Scattermapbox(
+    lat=stations_data['lat'], 
+    lon=stations_data['lng'],
+    mode='markers',
+    marker=dict(
+        size=12,
+        symbol='circle',  # You can change symbol to a custom image later
+        color='blue',
+        opacity=0.7
+    ),
+    text=stations_data['station_name'],  # Show station names when hovered
+    hoverinfo='text',
+    name='Stations'
+))
 
+# Add bike icons (scatter points for bikes)
+if bike_positions:
+    bike_lats = [lat for _, lat in bike_positions.values()]
+    bike_lngs = [lng for _, lng in bike_positions.values()]
+    fig.add_trace(go.Scattermapbox(
+        lat=bike_lats,
+        lon=bike_lngs,
+        mode='markers',
+        marker=dict(
+            size=10,
+            color='red',
+            opacity=0.7
+        ),
+        name='Bikes'
+    ))
 
-# Add station icons
-for _, row in stations_data.iterrows():
-    station_icon_extent = (
-        row['lng'] - 0.0008, row['lng'] + 0.0008,  # Adjust extent for station size
-        row['lat'] - 0.0008, row['lat'] + 0.0008
-    )
-    ax.imshow(station_icon, extent=station_icon_extent, zorder=2)
+# Set up the map layout for better interactivity (zoom, pan)
+fig.update_layout(
+    mapbox=dict(
+        style="carto-positron",  # You can use other styles like "open-street-map" or "satellite"
+        center=dict(lat=stations_data['lat'].mean(), lon=stations_data['lng'].mean()),  # Center the map based on the station data
+        zoom=13,  # Initial zoom level
+    ),
+    title="Bike Stations and Bikes",
+    showlegend=True
+)
 
-# Annotate station names
-for _, row in stations_data.iterrows():
-    ax.text(row['lng'], row['lat'], row['station_name'], fontsize=9, ha='right')
+# Update the layout for hover interaction and zoom/pan support
+fig.update_layout(
+    hovermode='closest',  # Enable hover for closest points
+    dragmode='zoom',  # Allow panning and zooming
+)
 
-# Label axes and title
-ax.set_xlabel('Longitude')
-ax.set_ylabel('Latitude')
-ax.set_title('Bike Stations and Bikes')
-
-# Set limits
-ax.set_xlim(min(stations_data['lng']) - 0.01, max(stations_data['lng']) + 0.01)
-ax.set_ylim(min(stations_data['lat']) - 0.01, max(stations_data['lat']) + 0.01)
-
-# Add legend
-ax.legend()
+# Show the plot
+fig.show()
 
 # Track bike icon objects
 bike_icons = []
@@ -62,7 +85,7 @@ def update_plot():
     if bike_positions:
         for lng, lat in bike_positions.values():
             bike_icon_extent = (lng - 0.0005, lng + 0.0005, lat - 0.0005, lat + 0.0005)
-            icon = ax.imshow(bike_icon, extent=bike_icon_extent, zorder=2)
-            bike_icons.append(icon)
+            #icon = ax.imshow(bike_icon, extent=bike_icon_extent, zorder=2)
+            #bike_icons.append(icon)
 
     plt.draw()  # Redraw the plot

@@ -14,7 +14,7 @@ stations_data = pd.DataFrame({
 
 
 # Read the CSV file into a DataFrame
-all_stations = pd.read_csv('./datasets/some_stations.csv')
+all_stations = pd.read_csv('./datasets/all_stations.csv')
 
 stations_data = all_stations.rename(columns={ # without this it will not work dont know why
     'station_id': 'station_id',
