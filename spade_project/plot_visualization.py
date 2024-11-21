@@ -4,22 +4,22 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
 # Load the bike and station icons 
-bike_icon = mpimg.imread('spade_project/images/bike_icon.png')  # Path to your bike icon image
-station_icon = mpimg.imread('spade_project/images/station_icon.png')  # Path to your station icon image
+bike_icon = mpimg.imread('./images/bike_icon.png')  # Path to your bike icon image
+station_icon = mpimg.imread('./images/station_icon.png')  # Path to your station icon image
 
 # Set up the plot
 fig, ax = plt.subplots(figsize=(8, 6))
 
 # Plot the line connecting stations
-station_0 = stations_data[stations_data['station_name'] == 'station_0']
-station_1 = stations_data[stations_data['station_name'] == 'station_1']
+#station_0 = stations_data[stations_data['station_name'] == 'station_0']
+#station_1 = stations_data[stations_data['station_name'] == 'station_1']
 
 # Extract coordinates for the line
-path_lngs = [station_0['lng'].values[0], station_1['lng'].values[0]]
-path_lats = [station_0['lat'].values[0], station_1['lat'].values[0]]
+#path_lngs = [station_0['lng'].values[0], station_1['lng'].values[0]]
+#path_lats = [station_0['lat'].values[0], station_1['lat'].values[0]]
 
 # Draw the line
-ax.plot(path_lngs, path_lats, linestyle='-', color='gray', label='Path Between Stations')
+#ax.plot(path_lngs, path_lats, linestyle='-', color='gray', label='Path Between Stations')
 
 
 # Add station icons

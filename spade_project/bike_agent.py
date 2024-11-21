@@ -13,7 +13,7 @@ class BikeAgent(Agent):
             self.agent.longitude += random.uniform(-0.001, 0.001)
 
             # Create location update message
-            location_update = f"{self.agent.name},{self.agent.latitude:.6f},{self.agent.longitude:.6f}"
+            location_update = f"{self.agent.agent_name},{self.agent.latitude:.6f},{self.agent.longitude:.6f}"
             print(location_update)
             
             # Send location update to the ManagerAgent
@@ -30,7 +30,9 @@ class BikeAgent(Agent):
         self.longitude = longitude
         self.current_station = start_station  # e.g., 'station_1@jabbim.com'
         self.manager_jid = manager_jid  # JID of ManagerAgent
+        self.agent_name = self.jid.resource
+
 
     async def setup(self):
-        print(f"Bike agent {self.name} is starting at station {self.current_station}.")
+        print(f"Bike agent {self.agent_name} is starting at station {self.current_station}.")
         self.add_behaviour(self.MoveBehaviour())

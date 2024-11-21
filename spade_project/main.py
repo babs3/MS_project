@@ -18,7 +18,7 @@ async def main():
     # Initialize StationAgents
     station_agents = []
     for _, station in stations_data.iterrows():
-        station_jid = f"{station['station_name']}@jabbim.com"
+        station_jid = "station@jabbim.com/" + station['station_name']
         station_agent = StationAgent(station_jid, "station")  # Replace with actual password
         station_agents.append(station_agent)
     
@@ -26,11 +26,35 @@ async def main():
     for agent in station_agents:
         await agent.start()
 
+    # Map station IDs to their coordinates (lat, lng)
+    station_coords = stations_data.set_index('station_id')[['lat', 'lng']].to_dict(orient='index')
+
     # Initialize BikeAgents
     bikes = [
-        BikeAgent("bike_0@jabbim.com", "bike", "station_0@jabbim.com", 40.7128, -74.0060, manager_jid),
-        BikeAgent("bike_1@jabbim.com", "bike", "station_0@jabbim.com", 40.7128, -74.0060, manager_jid),
-        BikeAgent("bike_2@jabbim.com", "bike", "station_1@jabbim.com", 40.7064, -74.0099, manager_jid)
+        BikeAgent(
+            "bike@jabbim.com/bike_0", 
+            "bike", 
+            "station@jabbim.com/Buckingham Fountain", 
+            station_coords[2.0]['lat'], 
+            station_coords[2.0]['lng'], 
+            manager_jid
+        ),
+        BikeAgent(
+            "bike@jabbim.com/bike_1", 
+            "bike", 
+            "station@jabbim.com/Shedd Aquarium", 
+            station_coords[2.0]['lat'], 
+            station_coords[2.0]['lng'], 
+            manager_jid
+        ),
+        BikeAgent(
+            "bike@jabbim.com/bike_2", 
+            "bike", 
+            "station@jabbim.com/Burnham Harbor", 
+            station_coords[4.0]['lat'], 
+            station_coords[4.0]['lng'], 
+            manager_jid
+        )
     ]
 
     # Start BikeAgents

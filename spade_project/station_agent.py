@@ -9,8 +9,12 @@ class StationAgent(Agent):
         async def run(self):
             msg = await self.receive(timeout=10)
             if msg:
-                print(f"[{self.agent.name}] Received: {msg.body}")
-    
+                print(f"[{self.agent.agent_name}] Received: {msg.body}")
+
+    def __init__(self, jid, password):
+        super().__init__(jid, password)
+        self.agent_name = self.jid.resource
+
     async def setup(self):
-        print(f"{self.name} is starting.")
+        print(f"{self.agent_name} is starting.")
         self.add_behaviour(self.ReceiveBikeUpdates())
