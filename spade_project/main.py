@@ -4,7 +4,7 @@ from bike_agent import BikeAgent
 from manager_agent import ManagerAgent
 import matplotlib.pyplot as plt
 import asyncio
-from plot_visualization import bike_positions, stations_data, update_bike_positions
+from plot_visualization import bike_positions, get_updated_bike_positions_figure, stations_data
 
 
 async def main():
@@ -64,8 +64,9 @@ async def main():
     # Main loop to update positions periodically
     try:
         while True:
-            update_bike_positions(2)
-            plt.pause(1)  # Pause to allow the plot to update every 1 second
+            # Use the standalone function to update the bike positions
+            updated_fig = get_updated_bike_positions_figure()
+            # You can add logic to save or inspect `updated_fig` if needed
             await asyncio.sleep(1)  # Wait before updating again
     except KeyboardInterrupt:
         print("Simulation stopped by user.")
