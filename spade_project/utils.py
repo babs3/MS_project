@@ -18,6 +18,31 @@ stations_data = all_stations.rename(columns={ # without this it will not work do
 # Ensure the DataFrame has the correct columns and order
 stations_data = stations_data[['station_id', 'station_name', 'lat', 'lng']]
 
+
+# Load trips data - static data
+trips_data = pd.DataFrame({
+    'ride_id': [],
+    'started_at': [],
+    'ended_at': [],
+    'start_station_id': [],
+    'end_station_id': [],
+    'ride_duration': [],
+    'distance': []
+})
+# Read the CSV file into a DataFrame
+all_trips = pd.read_csv('./auxiliar_files/some_trips.csv')
+trips_data = all_trips.rename(columns={
+    'ride_id': 'ride_id',
+    'started_at': 'started_at',
+    'ended_at': 'ended_at',
+    'start_station_id': 'start_station_id',
+    'end_station_id': 'end_station_id',
+    'ride_duration': 'ride_duration',
+    'distance': 'distance'
+})
+# Ensure the DataFrame has the correct columns and order
+trips_data = trips_data[['ride_id', 'started_at', 'ended_at', 'start_station_id', 'end_station_id', 'ride_duration', 'distance']]
+
 # Load bike data
 bike_positions = pd.DataFrame({
         'bike_id': [],

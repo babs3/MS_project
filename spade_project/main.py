@@ -2,9 +2,9 @@
 from station_agent import StationAgent
 from bike_agent import BikeAgent
 from manager_agent import ManagerAgent
-import matplotlib.pyplot as plt
 import asyncio
-from plot_visualization import bike_positions, get_updated_bike_positions_figure, stations_data
+from plot_visualization import get_updated_bike_positions_figure
+from utils import bike_positions, stations_data, trips_data
 
 
 async def main():
@@ -29,36 +29,23 @@ async def main():
     # Map station IDs to their coordinates (lat, lng)
     station_coords = stations_data.set_index('station_id')[['lat', 'lng']].to_dict(orient='index')
 
-    # Initialize BikeAgents
-    bikes = [
-        BikeAgent(
-            "bike@jabbim.com/bike_0", 
-            "bike", 
-            "station@jabbim.com/Buckingham Fountain", 
-            station_coords[2.0]['lat'], 
-            station_coords[2.0]['lng'], 
-            manager_jid
-        ),
-        BikeAgent(
-            "bike@jabbim.com/bike_1", 
-            "bike", 
-            "station@jabbim.com/Shedd Aquarium", 
-            station_coords[2.0]['lat'], 
-            station_coords[2.0]['lng'], 
-            manager_jid
-        ),
-        BikeAgent(
-            "bike@jabbim.com/bike_2", 
-            "bike", 
-            "station@jabbim.com/Burnham Harbor", 
-            station_coords[4.0]['lat'], 
-            station_coords[4.0]['lng'], 
-            manager_jid
-        )
-    ]
+    # Initialize BikeAgents (one for each trip)
+    bike_agents = []
+    for _, trip in trips_data.iterrows():
+        bike_jid = "bike@jabbim.com/" + trip['ride_id']
+        bike_agent = BikeAgent(
+                        bike_jid, 
+                        "bike", 
+                        trip['start_station_id'], 
+                        station_coords[trip['start_station_id']]['lat'], 
+                        station_coords[trip['start_station_id']]['lng'], 
+                        station_coords[trip['end_station_id']]['lat'], 
+                        station_coords[trip['end_station_id']]['lng'], 
+                        manager_jid)
+        bike_agents.append(bike_agent)
 
     # Start BikeAgents
-    for bike in bikes:
+    for bike in bike_agents:
         await bike.start()
 
     # Main loop to update positions periodically
@@ -72,7 +59,7 @@ async def main():
         print("Simulation stopped by user.")
     finally:
         # Stop all agents gracefully
-        for bike in bikes:
+        for bike in bike_agents:
             await bike.stop()
         for agent in station_agents:
             await agent.stop()
