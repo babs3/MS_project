@@ -1,48 +1,14 @@
 from dash import Dash, dcc, html, Input, Output
 import plotly.graph_objects as go
 import pandas as pd
+from utils import bike_positions, stations_data
 
 # Initialize the Dash app
 app = Dash(__name__)
 
-# Load station data
-stations_data = pd.DataFrame({
-    'station_id': [],
-    'station_name': [],
-    'lat': [],
-    'lng': []
-})
-
-# Read the CSV file into a DataFrame
-all_stations = pd.read_csv('./datasets/some_stations.csv')
-
-stations_data = all_stations.rename(columns={ # without this it will not work dont know why
-    'station_id': 'station_id',
-    'station_name': 'station_name',
-    'lat': 'lat',
-    'lng': 'lng'
-})
-
-# Ensure the DataFrame has the correct columns and order
-stations_data = stations_data[['station_id', 'station_name', 'lat', 'lng']]
-
-
-
-# Load bikes data
-
-bike_positions = pd.DataFrame({
-    'bike_id': [],
-    'lat': [],
-    'lng': []
-})
-
-
 # Create the initial figure
 def create_map_figure():
     fig = go.Figure()
-
-    print(stations_data.columns) 
-    print(stations_data.head())   # Inspect the first few rows for unexpected columns
 
     # Add station icons
     fig.add_trace(go.Scattermapbox(
@@ -87,25 +53,21 @@ app.layout = html.Div([
     Output('map', 'figure'),
     Input('interval-component', 'n_intervals')
 )
-def update_bike_positions(n_intervals):
-    # Read the CSV file into a DataFrame
-    bike_positions = pd.read_csv('./datasets/bike_positions.csv')
 
+def update_bike_positions(n_intervals):
+
+    # Read the CSV file into a DataFrame
+    bike_positions = pd.read_csv('./auxiliar_files/bike_positions.csv')
     bike_positions = bike_positions.rename(columns={ # without this it will not work dont know why
         'bike_id': 'bike_id',
         'lat': 'lat',
         'lng': 'lng'
     })
-
     # Ensure the DataFrame has the correct columns and order
     bike_positions = bike_positions[['bike_id', 'lat', 'lng']]
 
+
     fig = create_map_figure()
-
-    print("\n---------- DEBUG ----------")
-    print(bike_positions.columns)  # Ensure columns are ['bike_id', 'lat', 'lng']
-    print(bike_positions.head())   # Inspect the first few rows for unexpected columns
-
 
     # Add bike positions dynamically
     fig.add_trace(go.Scattermapbox(
@@ -128,8 +90,3 @@ def update_bike_positions(n_intervals):
 # Run the Dash app
 if __name__ == '__main__':
     app.run_server(debug=True)
-
-def update_plot():
-    global bike_icons
-
-    # Remove previous bike icons

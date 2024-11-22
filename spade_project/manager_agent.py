@@ -1,7 +1,7 @@
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour
 from spade.message import Message
-from common import add_or_update_bike
+from utils import add_or_update_bike
 
 
 class ManagerAgent(Agent):
