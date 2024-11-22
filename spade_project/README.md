@@ -1,17 +1,20 @@
 # MS_project
 
-First navigate to spade_project folder by doing:
-`cd .\spade_project\`
 
-To run the project you should first put *tripdata.csv* file from discord in datasets folder and run the notebook *clean_data.ipynb* to create csv files *all_stations* and *all_trips* (the last is not used for now).
+In project current state it only works with *some_stations.csv*  and  *some_trips.csv* datasets.
 
-In project current state it only works with *some_stations.csv* dataset. This is a file you should create inside *datasets* folder (because git is ignoring all csv files to prevent crashes) and should contain the following:
-```
-station_id,station_name,lat,lng
-2.0,Buckingham Fountain,41.87650827549585,-87.62054237689713
-3.0,Shedd Aquarium,41.86719997092317,-87.61535300068208
-4.0,Burnham Harbor,41.85625792166873,-87.61333879465181
-```
+Later, to run the project you should first put *tripdata.csv* file from discord in datasets folder and run the notebook *clean_data.ipynb* to create csv files *all_stations* and *all_trips* (the last is not used for now).
 
-Then you may execute the command to run the project:
-`make run`
+## Start and Run the project
+
+#### 1 -  Start the web browser for ploty visualization
+
+1.  To start the ploty web server you should open a new terminal and navigate to spade_project folder by doing: `cd .\spade_project\`
+
+2. Then you should run `make run_host` to run the script that will start the server.
+3 - Then you should open the link `http://127.0.0.1:8050/` in the browser.
+
+#### 2 - Run the SPADE project
+1. To run the main script file and be able to see bikes moving you should open another terminal and navigate to spade_project folder by doing: `cd .\spade_project\`
+
+2. Then you just have to type `make run` and the project will run

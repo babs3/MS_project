@@ -1,6 +1,7 @@
 # Define paths
-NOTEBOOK = "C:/Users/barba/OneDrive/Ambiente de Trabalho/MS/MS_project/spade_project/clean_data.ipynb"
+NOTEBOOK = "./clean_data.ipynb"
 SCRIPT = "./main.py"
+HOST = "./plot_visualization.py"
 
 # Default target when 'make' is called without any arguments
 all: run
@@ -14,3 +15,8 @@ run_notebook:
 run:
 	@echo "Running the main Python script..."
 	@python $(SCRIPT)
+
+# Run the visualization script
+run_host:
+	@echo "Running the visualization script..."
+	@python $(HOST)
