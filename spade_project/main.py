@@ -4,7 +4,7 @@ from bike_agent import BikeAgent
 from manager_agent import ManagerAgent
 import asyncio
 from plot_visualization import get_updated_bike_positions_figure
-from utils import bike_positions, stations_data, trips_data
+from utils import add_or_update_bike, bike_positions, stations_data, trips_data
 
 
 async def main():
@@ -43,6 +43,8 @@ async def main():
                         station_coords[trip['end_station_id']]['lng'], 
                         manager_jid)
         bike_agents.append(bike_agent)
+
+        add_or_update_bike(trip['ride_id'], station_coords[trip['start_station_id']]['lat'], station_coords[trip['start_station_id']]['lng'])
 
     # Start BikeAgents
     for bike in bike_agents:

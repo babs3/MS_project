@@ -43,7 +43,7 @@ class BikeAgent(Agent):
             await self.send(msg)
 
             # Wait before the next movement
-            await asyncio.sleep(0.5)  # Pause for 1 second to simulate movement
+            await asyncio.sleep(1)  # Pause for 1 second to simulate movement
 
 
     def __init__(self, jid, password, start_station, start_latitude, start_longitude, end_latitude, end_longitude, manager_jid):
