@@ -1,23 +1,28 @@
 from spade.behaviour import PeriodicBehaviour
 import socket
-
+import zmq.asyncio
+import asyncio
 
 class CreateMessageBehaviour(PeriodicBehaviour):
-        async def run(self):
-            # Create the message
-            topic = "location_updates"
-            host = 'localhost'
-            port = 65432
-            payload = f"{self.agent.jid} is at (lat, lng)"
-            message = f"{topic},{payload}"  # Message format to be sent
+    async def run(self):
+        context = zmq.asyncio.Context()
+        socket = context.socket(zmq.PUB)
+        socket.connect("tcp://localhost:65432")  # Connect to the broker
 
-            if not hasattr(self.agent, 'sock') or self.agent.sock.fileno() == -1:
-                # Create a socket (IPv4, TCP)
-                self.agent.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.agent.sock.connect((host, port))
-                print(f"{self.agent.jid} connected to broker")
+        print("Agent is sending messages...")
+        try:
+            await asyncio.sleep(1)  # Allow time for connection setup
+            while True:
+                message = "location_updates,Agent is at (lat, lng)"
+                await socket.send_string(message)
+                print(f"Agent sent message: {message}")
+                await asyncio.sleep(5)  # Send every 5 seconds
+        except asyncio.CancelledError:
+            print("Agent is shutting down...")
+        finally:
+            socket.close()
+            context.term()
 
-            # Send the message to the broker
-            self.agent.sock.sendall(message.encode())
-            print(f"{self.agent.jid} sent message: {message}")
+        
+
             

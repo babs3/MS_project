@@ -1,32 +1,25 @@
-import socket
-import logging
+import zmq.asyncio
+import asyncio
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
+async def broker():
+    context = zmq.asyncio.Context()
+    socket = context.socket(zmq.SUB)
+    socket.bind("tcp://*:65432")  # Bind to a specific port
+    socket.setsockopt_string(zmq.SUBSCRIBE, "location_updates")  # Subscribe to the topic
 
-def broker_server():
-    host = 'localhost'
-    port = 65432  # Port to listen on
-
-    # Create a socket (IPv4, TCP)
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((host, port))
-        s.listen()
-        logging.info(f"Broker listening on {host}:{port}")
-        
+    print("Broker is running and waiting for messages...")
+    try:
         while True:
-            # Accept a connection from an agent
-            conn, addr = s.accept()
-            with conn:
-                logging.info(f"Connected by {addr}")
-                while True:
-                    data = conn.recv(1024)
-                    if not data:
-                        break  # No more data from the agent
-                    message = data.decode()
-                    logging.info(f"Broker received: {message}")
-                    
-            logging.info("Connection closed, waiting for the next connection...")
+            message = await socket.recv_string()
+            print(f"Received message: {message}")
+    except asyncio.CancelledError:
+        print("Broker is shutting down...")
+    finally:
+        socket.close()
+        context.term()
 
 if __name__ == "__main__":
-    broker_server()
+    try:
+        asyncio.run(broker())
+    except KeyboardInterrupt:
+        print("Broker stopped.")
