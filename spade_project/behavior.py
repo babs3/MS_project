@@ -6,7 +6,7 @@ import asyncio
 class CreateMessageBehaviour(PeriodicBehaviour):
     async def run(self):
         context = zmq.asyncio.Context()
-        socket = context.socket(zmq.PUB)
+        socket = context.socket(zmq.PUSH)
         socket.connect("tcp://localhost:65432")  # Connect to the broker
 
         print("Agent is sending messages...")
