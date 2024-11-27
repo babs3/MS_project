@@ -36,7 +36,8 @@ def zmq_listener(socket, message_queue):
         try:
             message = socket.recv_string()  # Block until message arrives
             print(f"Received message: {message}")
-            node, payload = message.split(",", 1)  # Split into topic and payload
+            node, payload, resource = message.split(",", 2)  # Split into topic and payload
+            payload = payload + ' ' + resource
             message_queue.put((node.strip(), payload.strip()))  # Push message to the queue
             
         except zmq.ZMQError as e:
