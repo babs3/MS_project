@@ -12,6 +12,7 @@ class Broker(slixmpp.ClientXMPP):
     def __init__(self, jid, password):
         slixmpp.ClientXMPP.__init__(self, jid, password)
         self.add_event_handler("session_start", self.start)
+        
 
     async def start(self, event):
         self.send_presence()
@@ -19,6 +20,9 @@ class Broker(slixmpp.ClientXMPP):
         await self.get_roster()
         
         self.register_plugin('xep_0060')  # Enable PubSub
+        
+        
+    
     def publish_message(self, node, message):
         #pubsub_service = f"pubsub.{self.boundjid.domain}"
         print(node)
