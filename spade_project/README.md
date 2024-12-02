@@ -1,18 +1,11 @@
 # MS_project
 
+The purpose of this project is to build a simulation model of a shared eletrical bike system that manages to redistribute bikes between stations after X time lapse ending with a high median of bikes per station. In order to make communication between agents (bikes), protocol XMPP is used. The agents then proceed to enact their behaviors congruent with a pre processed dataset [Chicago Dataset](https://divvy-tripdata.s3.amazonaws.com/index.html) making the base model a descriptive model. The second model attempts to achieve the same purpose only by changing the controllable variables values making is a speculative model. A second scenario for this model introduces new endogenous variables in the form of incentives for the agents to change their behaviors.
+
+
 In project current state it only works with *some_stations.csv*  and  *some_trips.csv* datasets.
 
 Later, to run the project you should first put *tripdata.csv* file from discord in datasets folder and run the notebook *clean_data.ipynb* to create csv files *all_stations* and *all_trips* (the last is not used for now).
-
-
-For the project can run with no errors, there should exist the following 3 gajim accounts:
-![alt text](images/gajim.png)
-It's emails and passwords should be:
-
-| Role       | Agents Manager | Bikes          | Stations         |
-|------------|----------------|----------------|------------------|
-| Email      | ms_project@jabbim.com | bike@jabbim.com | station@jabbim.com |
-| Password   | ms_project     | bike           | station          |
 
 
 ## Start and Run the project
@@ -27,6 +20,6 @@ It's emails and passwords should be:
     ![alt text](images/ploty-map.png)
 
 ### 2 - Run the SPADE project
-1. To run the main script file and be able to see bikes moving you should open another terminal and navigate to spade_project folder by doing: `cd .\spade_project\`
+1.  `cd .\spade_project\` then run `python .\agent.py\`, `python .\sub_client.py\`, `python .\pub_client.py\`, the order is irrelevant.
 
 2. Then you just have to type `make run` and the project will run.
