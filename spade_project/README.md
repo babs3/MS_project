@@ -22,4 +22,3 @@ Later, to run the project you should first put *tripdata.csv* file from discord 
 ### 2 - Run the SPADE project
 1.  `cd .\spade_project\` then run `python .\agent.py\`, `python .\sub_client.py\`, `python .\pub_client.py\`, the order is irrelevant.
 
-2. Then you just have to type `make run` and the project will run.
