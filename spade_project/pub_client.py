@@ -7,6 +7,8 @@ import queue
 from slixmpp import Message
 from slixmpp.exceptions import IqError
 
+from utils import add_or_update_bike
+
 
 class Broker(slixmpp.ClientXMPP):
     def __init__(self, jid, password):
@@ -40,9 +42,17 @@ def zmq_listener(socket, message_queue):
         try:
             message = socket.recv_string()  # Block until message arrives
             print(f"Received message: {message}")
-            node, payload, resource = message.split(",", 2)  # Split into topic and payload
-            payload = payload + ' ' + resource
-            message_queue.put((node.strip(), payload.strip()))  # Push message to the queue
+            #message = topic + ',' + agent_name + ',' + str(latitude) + ',' + str(longitude) + ',' + str(resource)
+            topic, agent_name, latitude, longitude, resource = message.split(",", 4)  # Split into topic and payload
+            #node, payload, resource = message.split(",", 2)  # Split into topic and payload
+            #lat, lng, bike_id = resource.split(",", 2)
+
+            #payload = payload + ' ' + resource
+
+            payload = agent_name + ',' + latitude + ',' + longitude
+            # update bike_positions
+            add_or_update_bike(agent_name, float(latitude), float(longitude))
+            message_queue.put((topic.strip(), payload.strip()))  # Push message to the queue: Messages are added to a queue to be processed by the manager
             
         except zmq.ZMQError as e:
             print(f"ZeroMQ Error: {e}")
@@ -57,10 +67,10 @@ async def manager():
     socket.bind("tcp://*:65432")  # Bind to port 5555
 
     # Initialize the XMPP broker
-    xmpp_broker = Broker("ms_proj@macaw.me", "1234")
+    xmpp_broker = Broker("ms_proj@macaw.me", "1234") # Connects to the XMPP server with credentials
     xmpp_broker.register_plugin('xep_0030') # Service Discovery
     xmpp_broker.register_plugin('xep_0199') # XMPP Ping
-    xmpp_broker.register_plugin('xep_0060')  # Enable PubSub
+    xmpp_broker.register_plugin('xep_0060')  # Enable PubSub: Publishes received messages to a specific PubSub node using XMPP's PubSub extension
     xmpp_broker.connect()
     
     message_queue = queue.Queue()
@@ -73,9 +83,9 @@ async def manager():
     
     while True:
         if not message_queue.empty():
-            node, payload = message_queue.get()  # Get the message from the queue
+            node, payload = message_queue.get()  # Get the message from the queue: Messages in the queue are dequeued and parsed to extract the topic and payload
             print(f"Publishing message: Node: {node}, Payload: {payload}")
-            xmpp_broker.publish_message(node, payload)  # Publish the message
+            xmpp_broker.publish_message(node, payload)  # Publish the message: The parsed message is published to the corresponding node using the XMPP broker
 
         await asyncio.sleep(1)  # Avoid busy-waiting, check queue periodically
 

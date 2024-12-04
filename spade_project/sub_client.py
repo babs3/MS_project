@@ -24,12 +24,15 @@ class Broker(slixmpp.ClientXMPP):
         
         self.register_plugin('xep_0060')  # Enable PubSub
         #self.plugin['xep_0060'].subscribe(self.boundjid.bare, self.node)
-        
+
+    # When a message is published to this node (by pub_client.py), the pubsub_event_handler is triggered:
     async def pubsub_event_handler(self, msg):
         items = msg['pubsub_event']['items']
         for item in items['substanzas']:
             item_xml = item.xml  # This is an XML element
-            print(f"Received item ID: {item['id']}")
+            print(f"Received item ID: {item['id']}") # Extracts the message body and additional metadata
+            
+            # Processes the data as required (e.g., forwards it to another system):
             message_elem = item_xml.find("{jabber:client}message")
             body_elem = message_elem.find('{jabber:client}body')
             print(body_elem.text)
@@ -39,9 +42,8 @@ class Broker(slixmpp.ClientXMPP):
 
 async def manager():
     
-    
     # Initialize the XMPP broker
-    xmpp_broker = Broker("ms_proj@macaw.me", "1234", "location_updates")
+    xmpp_broker = Broker("ms_proj@macaw.me", "1234", "location_updates") # Connects to the same XMPP server as the publisher and Subscribes to a specified PubSub node
     xmpp_broker.register_plugin('xep_0030') # Service Discovery
     xmpp_broker.register_plugin('xep_0199') # XMPP Ping
     xmpp_broker.register_plugin('xep_0060')  # Enable PubSub
