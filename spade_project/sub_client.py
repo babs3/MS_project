@@ -34,6 +34,7 @@ class Broker(slixmpp.ClientXMPP):
             
             # Processes the data as required (e.g., forwards it to another system):
             message_elem = item_xml.find("{jabber:client}message")
+            print(message_elem)
             body_elem = message_elem.find('{jabber:client}body')
             print(body_elem.text)
             await message.async_message_sub('PUSH', 'location_updates', body_elem.text, item['id'])

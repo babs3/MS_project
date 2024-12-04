@@ -33,7 +33,7 @@ class Broker(slixmpp.ClientXMPP):
             # You can add attributes like 'to', 'type', etc., here if needed
             msg['body'] = message
             self.plugin['xep_0060'].publish(self.boundjid.bare, node, payload=msg)
-            print(f"Published message to node '{node}': {message}")
+            print(f"- Published message to node '{node}': {message}")
         except Exception as e:
             print(f"Failed to publish message: {e}")
             
@@ -44,11 +44,7 @@ def zmq_listener(socket, message_queue):
             print(f"Received message: {message}")
             #message = topic + ',' + agent_name + ',' + str(latitude) + ',' + str(longitude) + ',' + str(resource)
             topic, agent_name, latitude, longitude, resource = message.split(",", 4)  # Split into topic and payload
-            #node, payload, resource = message.split(",", 2)  # Split into topic and payload
-            #lat, lng, bike_id = resource.split(",", 2)
-
-            #payload = payload + ' ' + resource
-
+            
             payload = agent_name + ',' + latitude + ',' + longitude
             # update bike_positions
             add_or_update_bike(agent_name, float(latitude), float(longitude))

@@ -39,14 +39,10 @@ async def async_message(method, topic, agent_name, latitude, longitude, destinat
                 #await asyncio.sleep(3)  # Pause for 3 seconds before next action
                 return  # Stop moving further
             
-            print()
-            
-
-            #message = "location_updates,Agent is at (lat, lng)"
             message = topic + ',' + agent_name + ',' + str(latitude) + ',' + str(longitude) + ',' + str(resource)
             await socket.send_string(message)
             print(f"Agent {resource} sent message: {message}")
-            await asyncio.sleep(5)  # Send every 5 seconds
+            await asyncio.sleep(2)  # Send every 5 seconds
     except asyncio.CancelledError:
         print(f"Agent {resource} is shutting down...")
     finally:
