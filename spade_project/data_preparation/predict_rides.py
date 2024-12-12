@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import random
 
 def main():
-    num_of_rides = 50000
+    num_of_rides = 5000
 
     # Load the dataset
     df = pd.read_csv('spade_project/datasets/all_trips.csv')

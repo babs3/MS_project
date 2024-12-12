@@ -8,7 +8,7 @@ stations_data = pd.DataFrame({
     'lng': []
 })
 # Read the CSV file into a DataFrame
-all_stations = pd.read_csv('./auxiliar_files/some_stations.csv')
+all_stations = pd.read_csv('./datasets/all_stations.csv')
 stations_data = all_stations.rename(columns={ # without this it will not work dont know why
     'station_id': 'station_id',
     'station_name': 'station_name',
@@ -29,26 +29,6 @@ trips_data = pd.DataFrame({
     'ride_duration': [],
     'distance': []
 })
-# Read the CSV file into a DataFrame
-all_trips = pd.read_csv('./auxiliar_files/some_trips.csv')
-trips_data = all_trips.rename(columns={
-    'ride_id': 'ride_id',
-    'started_at': 'started_at',
-    'ended_at': 'ended_at',
-    'start_station_id': 'start_station_id',
-    'end_station_id': 'end_station_id',
-    'ride_duration': 'ride_duration',
-    'distance': 'distance'
-})
-# Ensure the DataFrame has the correct columns and order
-trips_data = trips_data[['ride_id', 'started_at', 'ended_at', 'start_station_id', 'end_station_id', 'ride_duration', 'distance']]
-
-# Load bike data
-bike_positions = pd.DataFrame({
-        'bike_id': [],
-        'lat': [],
-        'lng': []
-    })
 
 # Load rides data - static data
 rides_data = pd.DataFrame({
@@ -73,6 +53,20 @@ rides_data = all_rides.rename(columns={
 # Ensure the DataFrame has the correct columns and order
 rides_data = rides_data[['started_at', 'end_time', 'start_station_id', 'end_station_id', 'ride_duration', ]]
 
+# get the values of start_station_id from rides_data
+start_station_id = rides_data['start_station_id'].values
+end_station_id = rides_data['end_station_id'].values
+station_id = pd.concat([rides_data['start_station_id'], rides_data['end_station_id']], axis=0)
+station_id = station_id.unique()
+# stay only with the rows that have the station_id in the station_id of station_data
+stations_data = stations_data[stations_data['station_id'].isin(station_id)]
+
+# Load bike data
+bike_positions = pd.DataFrame({
+        'bike_id': [],
+        'lat': [],
+        'lng': []
+    })
 
 def add_or_update_bike(bike_id, lat, lng):
     print(f"Adding or updating bike {str(bike_id)}.")

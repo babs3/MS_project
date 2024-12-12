@@ -18,7 +18,7 @@ async def async_message(method, topic, agent):
 
             current_time = pd.Timestamp.now()
             start_time = pd.Timestamp(agent.started_at)
-            if current_time <= start_time:
+            if current_time <= start_time: # fix this 
 
                 # Calculate the direction vector to the destination
                 delta_lat = agent.destination_latitude - agent.latitude
@@ -41,7 +41,6 @@ async def async_message(method, topic, agent):
                     print(f"Bike {agent.agent_name} has reached the destination!")
                     delete_bike(agent.agent_name)
                     await agent.stop()
-                    #await asyncio.sleep(3)  # Pause for 3 seconds before next action
                     return  # Stop moving further
                                 
                 message = topic + ',' + agent.agent_name + ',' + str(agent.latitude) + ',' + str(agent.longitude) + ',' + str(agent.jid.resource)
