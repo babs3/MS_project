@@ -10,7 +10,7 @@ class CreateMessageBehaviour(PeriodicBehaviour):
         #topic = "location_updates"
         #payload = "Agent is that (lat lng)"
         #await message.async_message('PUSH', topic, payload, self.agent.jid.resource)
-        print(f"Agent {self.agent.jid.resource} is sending messages...")
+        print(f"--Agent {self.agent.jid.resource} is sending messages...")
 
         # Create location update message
         #location_update = f"{self.agent.agent_name},{self.agent.latitude:.6f},{self.agent.longitude:.6f}"
@@ -18,7 +18,7 @@ class CreateMessageBehaviour(PeriodicBehaviour):
 
         # Send location update to the ManagerAgent
         topic = "location_updates"
-        await message.async_message('PUSH', topic, self.agent.agent_name, self.agent.started_at, self.agent.latitude, self.agent.longitude, self.agent.destination_latitude, self.agent.destination_longitude, self.agent.jid.resource, self.agent.step_size)
+        await message.async_message('PUSH', topic, self.agent)
         # Send location update to the ManagerAgent
         #msg = Message(to=self.agent.manager_jid)  # Send to the ManagerAgent
         #msg.body = location_update

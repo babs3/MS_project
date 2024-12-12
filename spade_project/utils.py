@@ -106,3 +106,27 @@ def add_or_update_bike(bike_id, lat, lng):
     # Save the updated DataFrame to a CSV file
     bike_positions.to_csv('./auxiliar_files/bike_positions.csv', index=False)
 
+
+def delete_bike(bike_id):
+    print(f"Deleting bike {str(bike_id)}.")
+
+    # Read the CSV file into a DataFrame
+    bike_positions = pd.read_csv('./auxiliar_files/bike_positions.csv')
+    bike_positions = bike_positions.rename(columns={ # without this it will not work dont know why
+        'bike_id': 'bike_id',
+        'lat': 'lat',
+        'lng': 'lng'
+    })
+    # Ensure the DataFrame has the correct columns and order
+    bike_positions = bike_positions[['bike_id', 'lat', 'lng']]
+
+    # Check if the bike_id exists in the DataFrame
+    if str(bike_id) in bike_positions['bike_id'].astype(str).values:
+        # Delete the bike
+        bike_positions = bike_positions[bike_positions['bike_id'].astype(str) != str(bike_id)]
+        print("Bike deleted")
+    else:
+        print("Bike does not exist")
+
+    # Save the updated DataFrame to a CSV file
+    bike_positions.to_csv('./auxiliar_files/bike_positions.csv', index=False)
