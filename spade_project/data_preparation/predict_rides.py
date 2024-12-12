@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import random
 
 def main():
-    num_of_rides = 5000
+    num_of_rides = 100
 
     # Load the dataset
     df = pd.read_csv('spade_project/datasets/all_trips.csv')
@@ -29,7 +29,7 @@ def main():
     # Group by time (15-minute intervals) and compute the average departures across all days
     avg_departures_per_15min = departures_per_interval.groupby('time')['departures'].mean()
 
-    # Fit a KDE for the average departures
+    # Fit a Kernel Density Estimate (KDE) for the average departures
     departure_kde = gaussian_kde(avg_departures_per_15min)
 
     # Fit KDEs for ride durations by station pairs
@@ -48,12 +48,12 @@ def main():
     # Predict the next rides concurrently
     current_time = pd.Timestamp.now()
     predicted_rides = []
-    for i in range(num_of_rides):  # Predict 20 rides
+    for i in range(num_of_rides):  # Predict N rides
         predicted_ride = predict_next_ride(df, departure_kde, duration_kdes, current_time)
         predicted_rides.append(predicted_ride)
 
         # Update current time probabilistically, simulating overlapping rides
-        current_time = pd.Timestamp.now() #+= pd.Timedelta(minutes=random.uniform(5, 15))
+        current_time += pd.Timedelta(minutes=random.uniform(5, 15))
         print(f"Predicted ride {i + 1} at {predicted_ride['started_at']}")
 
     # Convert the predicted rides to a DataFrame
@@ -62,10 +62,12 @@ def main():
     # change the start_at and end_time to datetime format
     predicted_rides_df['started_at'] = pd.to_datetime(predicted_rides_df['started_at'])
     predicted_rides_df['end_time'] = pd.to_datetime(predicted_rides_df['end_time'])
-    
-    save_to_csv(predicted_rides_df, 'spade_project/auxiliar_files/predicted_rides.csv')
 
-    plot_departures(predicted_rides_df)
+    predicted_rides_df = normalize_timestamps(predicted_rides_df, 2)
+    
+    save_to_csv(predicted_rides_df, 'spade_project/datasets/predicted_rides.csv')
+
+    plot_departures_sec(predicted_rides_df)
 
 # Predict next ride details
 def predict_next_ride(df, departure_kde, duration_kdes, current_time):
@@ -103,6 +105,47 @@ def predict_next_ride(df, departure_kde, duration_kdes, current_time):
         'end_station_id': end_station_id,
         'ride_duration': ride_duration
     }
+
+def normalize_timestamps(predicted_rides_df, simulation_duration):
+    # Define the simulation duration (in minutes) and scaling factor
+    real_day_minutes = 24 * 60  # 1440 minutes in a day
+    scaling_factor = real_day_minutes / simulation_duration
+
+    # Normalize and scale start times
+    simulation_start_time = pd.Timestamp('2024-12-12 00:00:00')  # Arbitrary simulation start
+    min_time = predicted_rides_df['started_at'].min()  # Find the earliest ride time
+
+    # Calculate normalized start times in minutes, then convert to timedelta
+    predicted_rides_df['start_in'] = (
+        (predicted_rides_df['started_at'] - min_time).dt.total_seconds() / 60 / scaling_factor
+    )
+    predicted_rides_df['start_in'] = pd.to_timedelta(predicted_rides_df['start_in'], unit='m')
+
+    # Adjust end times based on scaled start times
+    predicted_rides_df['end_time'] = (
+        simulation_start_time + predicted_rides_df['start_in'] +
+        pd.to_timedelta(predicted_rides_df['ride_duration'] / scaling_factor, unit='m')
+    )
+
+    # Adjust the ride duration based on the scaled start and end times
+    predicted_rides_df['ride_duration'] = (
+        (predicted_rides_df['end_time'] - simulation_start_time - predicted_rides_df['start_in'])
+        .dt.total_seconds() / 60  # Convert to minutes
+    )
+
+    # Create the 'start_time' column by adding 'start_in' to the current time
+    current_time = pd.Timestamp.now()
+    predicted_rides_df['start_time'] = current_time + predicted_rides_df['start_in']
+
+    # delete the 'started_at' and 'start_in' columns
+    predicted_rides_df.drop(columns=['started_at', 'start_in'], inplace=True)
+
+    # Reorder the columns
+    predicted_rides_df = predicted_rides_df[['start_time', 'end_time', 'start_station_id', 'end_station_id', 'ride_duration']]
+
+    return predicted_rides_df
+
+
 
 def print_rides(predicted_rides):
     # Display the predicted rides
@@ -151,6 +194,20 @@ def plot_departures(df):
     plt.tight_layout()
 
     # Show the plot
+    plt.show()
+
+def plot_departures_sec(predicted_rides_df):
+    # Plot the number of rides per scaled 15-second interval in simulation
+    predicted_rides_df['scaled_15s_interval'] = predicted_rides_df['started_at'].dt.floor('15s')
+    rides_per_interval = predicted_rides_df.groupby('scaled_15s_interval').size().reset_index(name='ride_count')
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(rides_per_interval['scaled_15s_interval'], rides_per_interval['ride_count'], marker='o', linestyle='-', color='b')
+    plt.xlabel('Simulation Time (15-Second Intervals)')
+    plt.ylabel('Number of Rides')
+    plt.title('Number of Rides per 15-Second Interval in Scaled Simulation')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
     plt.show()
 
 

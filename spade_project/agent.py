@@ -59,7 +59,7 @@ async def main():
         bike_agent = BikeAgent(
                         bike_jid, 
                         "bike",
-                        ride['started_at'], 
+                        ride['start_time'], 
                         ride['start_station_id'], 
                         station_coords[ride['start_station_id']]['lat'], 
                         station_coords[ride['start_station_id']]['lng'], 

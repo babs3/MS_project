@@ -17,8 +17,11 @@ async def async_message(method, topic, agent):
         while True:
 
             current_time = pd.Timestamp.now()
-            start_time = pd.Timestamp(agent.started_at)
-            if current_time <= start_time: # fix this 
+            ride_duration = pd.Timedelta(agent.ride_duration)
+            # Update coordinates if agent's end time is less than current end time
+            
+            if agent.start_time <= current_time:
+                print(f"Agent {agent.agent_name} is moving...")
 
                 # Calculate the direction vector to the destination
                 delta_lat = agent.destination_latitude - agent.latitude

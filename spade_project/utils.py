@@ -43,15 +43,14 @@ rides_data = pd.DataFrame({
 # Read the CSV file into a DataFrame
 all_rides = pd.read_csv('./auxiliar_files/some_predicted_rides.csv')
 rides_data = all_rides.rename(columns={
-    #'ride_id': 'ride_id',
-    'started_at': 'started_at',
+    'start_time': 'start_time',
     'end_time': 'end_time',
     'start_station_id': 'start_station_id',
     'end_station_id': 'end_station_id',
     'ride_duration': 'ride_duration',
 })
 # Ensure the DataFrame has the correct columns and order
-rides_data = rides_data[['started_at', 'end_time', 'start_station_id', 'end_station_id', 'ride_duration', ]]
+rides_data = rides_data[['start_time', 'end_time', 'start_station_id', 'end_station_id', 'ride_duration']]
 
 # get the values of start_station_id from rides_data
 start_station_id = rides_data['start_station_id'].values

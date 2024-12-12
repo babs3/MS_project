@@ -2,6 +2,7 @@
 import asyncio
 import math
 import random
+import pandas as pd
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour
 from spade.message import Message
@@ -11,9 +12,9 @@ from behavior import CreateMessageBehaviour
 
 class BikeAgent(Agent):
 
-    def __init__(self, jid, password, started_at, start_station, start_latitude, start_longitude, end_latitude, end_longitude, ride_duration): #,manager_jid
+    def __init__(self, jid, password, start_time, start_station, start_latitude, start_longitude, end_latitude, end_longitude, ride_duration): #,manager_jid
         super().__init__(jid, password)
-        self.started_at = started_at
+        self.start_time = pd.Timestamp(start_time)
         self.latitude = start_latitude
         self.longitude = start_longitude
         self.destination_latitude = end_latitude
@@ -41,8 +42,7 @@ class BikeAgent(Agent):
         # Calculate the step size
         self.step_size = distance / ride_duration
         print(f"- Step size of {self.agent_name}: {self.step_size}")
-
-
+        
         #self.add_behaviour(self.MoveBehaviour())
         self.add_behaviour(CreateMessageBehaviour(period=5))  # Run every 5 seconds
 
