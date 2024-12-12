@@ -50,8 +50,32 @@ bike_positions = pd.DataFrame({
         'lng': []
     })
 
+# Load rides data - static data
+rides_data = pd.DataFrame({
+    #'ride_id': [],
+    'started_at': [],
+    'end_time': [],
+    'start_station_id': [],
+    'end_station_id': [],
+    'ride_duration': [],
+})
+
+# Read the CSV file into a DataFrame
+all_rides = pd.read_csv('./auxiliar_files/some_predicted_rides.csv')
+rides_data = all_rides.rename(columns={
+    #'ride_id': 'ride_id',
+    'started_at': 'started_at',
+    'end_time': 'end_time',
+    'start_station_id': 'start_station_id',
+    'end_station_id': 'end_station_id',
+    'ride_duration': 'ride_duration',
+})
+# Ensure the DataFrame has the correct columns and order
+rides_data = rides_data[['started_at', 'end_time', 'start_station_id', 'end_station_id', 'ride_duration', ]]
+
 
 def add_or_update_bike(bike_id, lat, lng):
+    print(f"Adding or updating bike {str(bike_id)}.")
 
     # Read the CSV file into a DataFrame
     bike_positions = pd.read_csv('./auxiliar_files/bike_positions.csv')
@@ -63,14 +87,21 @@ def add_or_update_bike(bike_id, lat, lng):
     # Ensure the DataFrame has the correct columns and order
     bike_positions = bike_positions[['bike_id', 'lat', 'lng']]
 
-
-    # Check if the bike_id is already in the DataFrame
-    if bike_id in bike_positions['bike_id'].values:
-        # Update existing bike
-        bike_positions.loc[bike_positions['bike_id'] == bike_id, ['lat', 'lng']] = [lat, lng]
-    else:
+    exists = False
+    for id in bike_positions['bike_id'].values:
+        if str(id) == str(bike_id):
+            print("Bike already exists")
+            # Update existing bike
+            bike_positions.loc[bike_positions['bike_id'] == id, ['lat', 'lng']] = [lat, lng]
+            exists = True
+            break
+    
+    if not exists:
+        print("Bike does not exist")
         # Add new bike using a dictionary
         bike_positions.loc[len(bike_positions)] = {'bike_id': bike_id, 'lat': lat, 'lng': lng}
+
+    # Check if the bike_id is already in the DataFrame
 
     # Save the updated DataFrame to a CSV file
     bike_positions.to_csv('./auxiliar_files/bike_positions.csv', index=False)

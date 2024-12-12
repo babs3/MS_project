@@ -3,6 +3,7 @@ import socket
 import zmq.asyncio
 import asyncio
 import message
+import math
 
 class CreateMessageBehaviour(PeriodicBehaviour):
     async def run(self):
@@ -17,7 +18,7 @@ class CreateMessageBehaviour(PeriodicBehaviour):
 
         # Send location update to the ManagerAgent
         topic = "location_updates"
-        await message.async_message('PUSH', topic, self.agent.agent_name, self.agent.latitude, self.agent.longitude, self.agent.destination_latitude, self.agent.destination_longitude, self.agent.jid.resource)
+        await message.async_message('PUSH', topic, self.agent.agent_name, self.agent.started_at, self.agent.latitude, self.agent.longitude, self.agent.destination_latitude, self.agent.destination_longitude, self.agent.jid.resource, self.agent.step_size)
         # Send location update to the ManagerAgent
         #msg = Message(to=self.agent.manager_jid)  # Send to the ManagerAgent
         #msg.body = location_update

@@ -7,7 +7,7 @@ import zmq
 import threading
 from bike_agent import BikeAgent
 from station_agent import StationAgent
-from utils import add_or_update_bike, bike_positions, stations_data, trips_data
+from utils import add_or_update_bike, bike_positions, stations_data, trips_data, rides_data
 from plot_visualization import get_updated_bike_positions_figure
    
 def zmq_listener(socket, dict):
@@ -54,20 +54,22 @@ async def main():
 
     # Initialize BikeAgents (one for each trip)
     bike_agents = []
-    for _, trip in trips_data.iterrows():
-        bike_jid = "bike@jabbim.com/" + trip['ride_id']
+    for idx, ride in rides_data.iterrows():
+        bike_jid = "bike@jabbim.com/" + str(idx) #trip['ride_id']
         bike_agent = BikeAgent(
                         bike_jid, 
-                        "bike", 
-                        trip['start_station_id'], 
-                        station_coords[trip['start_station_id']]['lat'], 
-                        station_coords[trip['start_station_id']]['lng'], 
-                        station_coords[trip['end_station_id']]['lat'], 
-                        station_coords[trip['end_station_id']]['lng']
+                        "bike",
+                        ride['started_at'], 
+                        ride['start_station_id'], 
+                        station_coords[ride['start_station_id']]['lat'], 
+                        station_coords[ride['start_station_id']]['lng'], 
+                        station_coords[ride['end_station_id']]['lat'], 
+                        station_coords[ride['end_station_id']]['lng'],
+                        ride['ride_duration']
                         )
         bike_agents.append(bike_agent)
 
-        add_or_update_bike(trip['ride_id'], station_coords[trip['start_station_id']]['lat'], station_coords[trip['start_station_id']]['lng'])
+        add_or_update_bike(idx, station_coords[ride['start_station_id']]['lat'], station_coords[ride['start_station_id']]['lng'])
 
     # Start BikeAgents
     for bike in bike_agents:
