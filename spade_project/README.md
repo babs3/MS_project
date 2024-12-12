@@ -22,3 +22,14 @@ Later, to run the project you should first put *tripdata.csv* file from discord 
 ### 2 - Run the SPADE project
 1.  `cd .\spade_project\` then run `python .\agent.py\`, `python .\sub_client.py\`, `python .\pub_client.py\`, the order is irrelevant.
 
+---
+---
+
+## Update of 12/12/2024:
+- The project does not show the movement of bikes anymore, for now you will only see blue points in the host, representing stations.
+- the `bike_positions.csv` file kepts the bikes ids and the current station where it belongs (later this can be stored in bike agent I think)
+- To see thing running in terminal, you should:
+    - run the `predict_rides.py` file to populate the `some_predicted_rides.csv`. It will generate rides for the next minutes.
+    - open two terminals to run the `agent.py` and `pub_client.py` files. The terminals output what is currently hapenning.
+
+**Next steps:**  make the stations appear differently in the host, taking into account the number of bikes.
