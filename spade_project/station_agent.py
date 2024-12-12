@@ -16,5 +16,5 @@ class StationAgent(Agent):
         self.agent_name = self.jid.resource
 
     async def setup(self):
-        print(f"{self.agent_name} is starting.")
+        print(f" - {self.agent_name} is starting.")
         self.add_behaviour(self.ReceiveBikeUpdates())

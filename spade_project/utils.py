@@ -46,11 +46,10 @@ rides_data = all_rides.rename(columns={
     'start_time': 'start_time',
     'end_time': 'end_time',
     'start_station_id': 'start_station_id',
-    'end_station_id': 'end_station_id',
-    'ride_duration': 'ride_duration',
+    'end_station_id': 'end_station_id'
 })
 # Ensure the DataFrame has the correct columns and order
-rides_data = rides_data[['start_time', 'end_time', 'start_station_id', 'end_station_id', 'ride_duration']]
+rides_data = rides_data[['start_time', 'end_time', 'start_station_id', 'end_station_id']]
 
 # get the values of start_station_id from rides_data
 start_station_id = rides_data['start_station_id'].values
@@ -67,32 +66,31 @@ bike_positions = pd.DataFrame({
         'lng': []
     })
 
-def add_or_update_bike(bike_id, lat, lng):
+def add_or_update_bike(bike_id, curr_station_id):
     print(f"Adding or updating bike {str(bike_id)}.")
 
     # Read the CSV file into a DataFrame
     bike_positions = pd.read_csv('./auxiliar_files/bike_positions.csv')
     bike_positions = bike_positions.rename(columns={ # without this it will not work dont know why
         'bike_id': 'bike_id',
-        'lat': 'lat',
-        'lng': 'lng'
+        'curr_station_id': 'curr_station_id'
     })
     # Ensure the DataFrame has the correct columns and order
-    bike_positions = bike_positions[['bike_id', 'lat', 'lng']]
+    bike_positions = bike_positions[['bike_id', 'curr_station_id']]
 
     exists = False
     for id in bike_positions['bike_id'].values:
         if str(id) == str(bike_id):
             print("Bike already exists")
             # Update existing bike
-            bike_positions.loc[bike_positions['bike_id'] == id, ['lat', 'lng']] = [lat, lng]
+            bike_positions.loc[bike_positions['bike_id'] == id, 'curr_station_id'] = float(curr_station_id)  # or the appropriate type
             exists = True
             break
     
     if not exists:
         print("Bike does not exist")
         # Add new bike using a dictionary
-        bike_positions.loc[len(bike_positions)] = {'bike_id': bike_id, 'lat': lat, 'lng': lng}
+        bike_positions.loc[len(bike_positions)] = {'bike_id': bike_id, 'curr_station_id': curr_station_id}
 
     # Check if the bike_id is already in the DataFrame
 
@@ -107,11 +105,10 @@ def delete_bike(bike_id):
     bike_positions = pd.read_csv('./auxiliar_files/bike_positions.csv')
     bike_positions = bike_positions.rename(columns={ # without this it will not work dont know why
         'bike_id': 'bike_id',
-        'lat': 'lat',
-        'lng': 'lng'
+        'curr_station_id': 'curr_station_id'
     })
     # Ensure the DataFrame has the correct columns and order
-    bike_positions = bike_positions[['bike_id', 'lat', 'lng']]
+    bike_positions = bike_positions[['bike_id', 'curr_station_id']]
 
     # Check if the bike_id exists in the DataFrame
     if str(bike_id) in bike_positions['bike_id'].astype(str).values:

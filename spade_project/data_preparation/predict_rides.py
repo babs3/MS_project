@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import random
 
 def main():
-    num_of_rides = 100
+    num_of_rides = 20
+    simulation_duration = 1.5
 
     # Load the dataset
     df = pd.read_csv('spade_project/datasets/all_trips.csv')
@@ -63,9 +64,9 @@ def main():
     predicted_rides_df['started_at'] = pd.to_datetime(predicted_rides_df['started_at'])
     predicted_rides_df['end_time'] = pd.to_datetime(predicted_rides_df['end_time'])
 
-    predicted_rides_df = normalize_timestamps(predicted_rides_df, 2)
+    predicted_rides_df = normalize_timestamps(predicted_rides_df, simulation_duration)
     
-    save_to_csv(predicted_rides_df, 'spade_project/datasets/predicted_rides.csv')
+    save_to_csv(predicted_rides_df, 'spade_project/auxiliar_files/some_predicted_rides.csv')
 
     plot_departures_sec(predicted_rides_df)
 
@@ -136,12 +137,13 @@ def normalize_timestamps(predicted_rides_df, simulation_duration):
     # Create the 'start_time' column by adding 'start_in' to the current time
     current_time = pd.Timestamp.now()
     predicted_rides_df['start_time'] = current_time + predicted_rides_df['start_in']
+    predicted_rides_df['end_time'] = current_time + predicted_rides_df['start_in'] + pd.to_timedelta(predicted_rides_df['ride_duration'], unit='m')
 
     # delete the 'started_at' and 'start_in' columns
-    predicted_rides_df.drop(columns=['started_at', 'start_in'], inplace=True)
+    predicted_rides_df.drop(columns=['started_at', 'start_in', 'ride_duration'], inplace=True)
 
     # Reorder the columns
-    predicted_rides_df = predicted_rides_df[['start_time', 'end_time', 'start_station_id', 'end_station_id', 'ride_duration']]
+    predicted_rides_df = predicted_rides_df[['start_time', 'end_time', 'start_station_id', 'end_station_id']]
 
     return predicted_rides_df
 
@@ -198,7 +200,7 @@ def plot_departures(df):
 
 def plot_departures_sec(predicted_rides_df):
     # Plot the number of rides per scaled 15-second interval in simulation
-    predicted_rides_df['scaled_15s_interval'] = predicted_rides_df['started_at'].dt.floor('15s')
+    predicted_rides_df['scaled_15s_interval'] = predicted_rides_df['start_time'].dt.floor('15s')
     rides_per_interval = predicted_rides_df.groupby('scaled_15s_interval').size().reset_index(name='ride_count')
 
     plt.figure(figsize=(10, 6))

@@ -42,12 +42,12 @@ def zmq_listener(socket, message_queue):
         try:
             message = socket.recv_string()  # Block until message arrives
             print(f"Received message: {message}")
-            #message = topic + ',' + agent_name + ',' + str(latitude) + ',' + str(longitude) + ',' + str(resource)
-            topic, agent_name, latitude, longitude, resource = message.split(",", 4)  # Split into topic and payload
+            #message = topic + ',' + agent_name + ',' + curr_station_id + ',' + str(resource)
+            topic, agent_name, curr_station_id = message.split(",", 2)  # Split into topic and payload
             
-            payload = agent_name + ',' + latitude + ',' + longitude
+            payload = agent_name + ',' + curr_station_id
             # update bike_positions
-            add_or_update_bike(agent_name, float(latitude), float(longitude))
+            add_or_update_bike(agent_name, curr_station_id)
             message_queue.put((topic.strip(), payload.strip()))  # Push message to the queue: Messages are added to a queue to be processed by the manager
             
         except zmq.ZMQError as e:

@@ -47,28 +47,29 @@ def get_updated_bike_positions_figure(center=None, zoom=None):
     bike_positions = pd.read_csv('./auxiliar_files/bike_positions.csv')
     bike_positions = bike_positions.rename(columns={
         'bike_id': 'bike_id',
-        'lat': 'lat',
-        'lng': 'lng'
+        'curr_station_id': 'curr_station_id'
     })
-    bike_positions = bike_positions[['bike_id', 'lat', 'lng']]
+    bike_positions = bike_positions[['bike_id', 'curr_station_id']]
 
     # Create the map figure with updated bike positions
     fig = create_map_figure(center=center, zoom=zoom)
 
-    fig.add_trace(go.Scattermapbox(
-        lat=bike_positions['lat'],
-        lon=bike_positions['lng'],
-        mode='markers',
-        marker=dict(
-            size=10,
-            symbol='circle',
-            color='red',
-            opacity=0.5
-        ),
-        text=bike_positions['bike_id'],
-        hoverinfo='text',
-        name='Bikes'
-    ))
+    flag = False
+    if flag:
+        fig.add_trace(go.Scattermapbox(
+            lat=bike_positions['lat'],
+            lon=bike_positions['lng'],
+            mode='markers',
+            marker=dict(
+                size=10,
+                symbol='circle',
+                color='red',
+                opacity=0.5
+            ),
+            text=bike_positions['bike_id'],
+            hoverinfo='text',
+            name='Bikes'
+        ))
 
     return fig
 
