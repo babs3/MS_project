@@ -120,3 +120,14 @@ def delete_bike(bike_id):
 
     # Save the updated DataFrame to a CSV file
     bike_positions.to_csv('./auxiliar_files/bike_positions.csv', index=False)
+    
+    
+def update_bike_counts():
+    # Load bike positions
+    bike_positions = pd.read_csv('./auxiliar_files/bike_positions.csv')
+
+    # Count bikes at each station
+    bike_counts = bike_positions.groupby('curr_station_id').size()
+
+    # Map counts to stations_data
+    stations_data['bike_count'] = stations_data['station_id'].map(bike_counts).fillna(0).astype(int)

@@ -10,8 +10,8 @@ def main():
     simulation_duration = 1.5
 
     # Load the dataset
-    df = pd.read_csv('spade_project/datasets/all_trips.csv')
-
+    df = pd.read_csv('spade_project/datasets/all_tris.csv')
+    
     # Ensure the ride_duration is numeric
     df['ride_duration'] = pd.to_numeric(df['ride_duration'], errors='coerce')
     df.dropna(subset=['ride_duration'], inplace=True)

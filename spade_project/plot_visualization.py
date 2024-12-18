@@ -1,7 +1,7 @@
 from dash import Dash, dcc, html, Input, Output, State
 import plotly.graph_objects as go
 import pandas as pd
-from utils import bike_positions, stations_data
+from utils import bike_positions, stations_data, update_bike_counts
 
 # Initialize the Dash app
 app = Dash(__name__)
@@ -10,7 +10,12 @@ app = Dash(__name__)
 def create_map_figure(center=None, zoom=None):
     fig = go.Figure()
 
-    # Add station icons
+    # Define colors based on bike count
+    color_map = stations_data['bike_count'].apply(
+        lambda x: 'red' if x == 0 else ('yellow' if x < 3 else 'green')
+    )
+
+    # Add station icons with dynamic colors
     fig.add_trace(go.Scattermapbox(
         lat=stations_data['lat'],
         lon=stations_data['lng'],
@@ -18,10 +23,12 @@ def create_map_figure(center=None, zoom=None):
         marker=dict(
             size=12,
             symbol='circle',
-            color='blue',
+            color=color_map,  # Dynamic color mapping
             opacity=0.7
         ),
-        text=stations_data['station_name'],
+        text=stations_data.apply(
+            lambda row: f"{row['station_name']}<br>Bikes: {row['bike_count']}", axis=1
+        ),
         hoverinfo='text',
         name='Stations'
     ))
@@ -43,35 +50,11 @@ def create_map_figure(center=None, zoom=None):
 
 # Standalone function to update bike positions
 def get_updated_bike_positions_figure(center=None, zoom=None):
-    # Read the CSV file into a DataFrame
-    bike_positions = pd.read_csv('./auxiliar_files/bike_positions.csv')
-    bike_positions = bike_positions.rename(columns={
-        'bike_id': 'bike_id',
-        'curr_station_id': 'curr_station_id'
-    })
-    bike_positions = bike_positions[['bike_id', 'curr_station_id']]
+    # Refresh bike counts in stations_data
+    update_bike_counts()  # This function will calculate the latest bike counts for each station
 
-    # Create the map figure with updated bike positions
-    fig = create_map_figure(center=center, zoom=zoom)
-
-    flag = False
-    if flag:
-        fig.add_trace(go.Scattermapbox(
-            lat=bike_positions['lat'],
-            lon=bike_positions['lng'],
-            mode='markers',
-            marker=dict(
-                size=10,
-                symbol='circle',
-                color='red',
-                opacity=0.5
-            ),
-            text=bike_positions['bike_id'],
-            hoverinfo='text',
-            name='Bikes'
-        ))
-
-    return fig
+    # Create the map figure with the updated bike counts
+    return create_map_figure(center=center, zoom=zoom)
 
 # Dash app layout
 app.layout = html.Div([
@@ -83,10 +66,8 @@ app.layout = html.Div([
 # Dash callback to update the map
 @app.callback(
     Output('map', 'figure'),
-    [
-        Input('interval-component', 'n_intervals'),
-        State('map-state', 'data')  # Get the current map state
-    ]
+    [Input('interval-component', 'n_intervals')],
+    [State('map-state', 'data')]  # Get the current map state
 )
 def update_bike_positions(n_intervals, map_state):
     center = map_state['center']
