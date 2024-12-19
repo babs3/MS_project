@@ -10,7 +10,7 @@ def main():
     simulation_duration = 1.5
 
     # Load the dataset
-    df = pd.read_csv('spade_project/datasets/all_trips.csv')
+    df = pd.read_csv('../datasets/all_trips.csv')
     
     # Ensure the ride_duration is numeric
     df['ride_duration'] = pd.to_numeric(df['ride_duration'], errors='coerce')
@@ -66,7 +66,7 @@ def main():
 
     predicted_rides_df = normalize_timestamps(predicted_rides_df, simulation_duration)
     
-    save_to_csv(predicted_rides_df, 'spade_project/auxiliar_files/some_predicted_rides.csv')
+    save_to_csv(predicted_rides_df, '../auxiliar_files/some_predicted_rides.csv')
 
     plot_departures_sec(predicted_rides_df)
 

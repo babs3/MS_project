@@ -33,3 +33,19 @@ Later, to run the project you should first put *tripdata.csv* file from discord 
     - open two terminals to run the `agent.py` and `pub_client.py` files. The terminals output what is currently hapenning.
 
 **Next steps:**  make the stations appear differently in the host, taking into account the number of bikes.
+
+## Update of 19/12/2024:
+- Stations appear differently in the host, taking into account the number of bikes.
+    - Red Station: 0 bikes
+    - Yellow Station: 1 - 3 bikes
+    - Green Station: 4 and more bikes
+
+**Notes from the teacher:**  
+- we should keep the station position fixed
+- the metrix of the system is the availability rate (the capacity of the bikes with the bikes in the station) 
+- capacity should be the same for all stations and the bikes in the station should be 70% of the capacity (max 15 bikes per station, but in each one 10 bikes inside)
+
+**Next Steps**
+- run the basic scenario (picking up, time duration and drop off)
+- measure availability rate
+- apply cost function to ask users to leave bikes in other stations that needs bikes, by offering a discound 
