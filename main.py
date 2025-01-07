@@ -145,27 +145,25 @@ def simulation_loop():
     
     try:
         print("\nRunning simulation...")
-        while True:
-            # Simulate rides
-            for t, ride in rides_data.iterrows():
-                perform_ride = False
-                for station in stations:
-                    if station.station_id == ride['start_station_id']:
-                        if station.bike_count > 0:
-                            perform_ride = True
-                            station.remove_bike()
-                            break
+        # Simulate rides
+        for t, ride in rides_data.iterrows():
+            for station in stations:
+                if station.station_id == ride['start_station_id']:
+                    if station.bike_count > 0:
+                        perform_ride = True
+                        station.remove_bike()
+                        break
 
-                if perform_ride:
-                    for station in stations:
-                        if station.station_id == ride['end_station_id']:
+            if perform_ride:
+                for station in stations:
+                    if station.station_id == ride['end_station_id']:
+                         if station.bike_count < station.capacity:  # Check if the station is not full
                             station.add_bike()
                             break
 
             # Calculate and log the system-wide availability rate
             availability_rate = calculate_availability_rate()
             print(f"System-wide Availability Rate: {availability_rate:.2%}")
-
             time.sleep(simulation_duration / len(rides_data))  # Scale timing dynamically ??
 
     except KeyboardInterrupt:
