@@ -1,5 +1,5 @@
 class Station:
-    def __init__(self, station_id, station_name, lat, lng, initial_bike_count=0, capacity=25):
+    def __init__(self, station_id, station_name, lat, lng, initial_bike_count=0, capacity=15):
         self.station_id = station_id
         self.station_name = station_name
         self.lat = lat
@@ -8,10 +8,12 @@ class Station:
         self.capacity = capacity
 
     def add_bike(self):
-        if self.bike_count < self.capacity:
-            self.bike_count += 1
-        else:
-            print(f"[{self.station_name}] Station is full!")
+        self.bike_count += 1
+        #if self.bike_count < self.capacity:
+        #    self.bike_count += 1
+        #    self.log_state()
+        #else:
+        #    print(f"[{self.station_name}] Station is full!")
 
     def remove_bike(self):
         if self.bike_count > 0:

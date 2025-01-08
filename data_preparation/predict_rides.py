@@ -11,7 +11,7 @@ file_path = os.path.join(script_dir, '../datasets/all_trips.csv')
 output_path = os.path.join(script_dir, '../small_datasets/some_predicted_rides.csv')
 
 def main():
-    num_of_rides = 8000
+    num_of_rides = 5000
 
     # Load the dataset
     df = pd.read_csv(file_path)

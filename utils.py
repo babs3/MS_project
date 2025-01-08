@@ -56,7 +56,7 @@ for _, row in stations_data.iterrows():
         lat=row['lat'],
         lng=row['lng'],
         initial_bike_count=10,  # Example initial bike count
-        capacity=25  # Set capacity to 15
+        capacity=15  # Set capacity to 15
 
     )
     stations.append(station)
@@ -75,7 +75,7 @@ def calculate_availability_rate():
     # Log individual station availability rates
     for station in stations:
         station_availability_rate = station.bike_count / station.capacity
-        print(f"{station.station_name}: {station_availability_rate:.2%}")
+        #print(f"{station.station_name}: {station_availability_rate:.2%}")
 
     return system_availability_rate
 

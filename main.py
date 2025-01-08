@@ -141,7 +141,11 @@ def update_availability_rate(n_intervals):
 
 
 def simulation_loop():
-    simulation_duration = 15  # seconds?
+    simulation_duration = 15  # seconds 
+    simulation_delay = simulation_duration / len(rides_data)
+
+    # start counting time
+    start_time = time.time()
     
     try:
         print("\nRunning simulation...")
@@ -157,21 +161,30 @@ def simulation_loop():
             if perform_ride:
                 for station in stations:
                     if station.station_id == ride['end_station_id']:
-                         if station.bike_count < station.capacity:  # Check if the station is not full
-                            station.add_bike()
-                            break
+                        #if station.bike_count < station.capacity:  # Check if the station is not full
+                        station.add_bike()
+                        break
 
             # Calculate and log the system-wide availability rate
             availability_rate = calculate_availability_rate()
-            print(f"System-wide Availability Rate: {availability_rate:.2%}")
-            time.sleep(simulation_duration / len(rides_data))  # Scale timing dynamically ??
+
+            # Calculate the elapsed time
+            elapsed_time = time.time() - start_time
+            expected_time = (t + 1) * simulation_delay
+            sleep_time = expected_time - elapsed_time
+
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+
+        # Calculate total elapsed time
+        total_elapsed_time = time.time() - start_time
+        print(f"Simulation completed in {total_elapsed_time:.2f} seconds")
+        print(f"System-wide Availability Rate: {availability_rate:.2%}")
+
 
     except KeyboardInterrupt:
         print("Simulation stopped by user.")
-    finally:
-        print("Simulation is over.")
-        time.sleep(2)
-
+    
 
 # Run Dash App and Simulation in Parallel
 if __name__ == '__main__':
