@@ -21,7 +21,7 @@ def create_map_figure(center=None, zoom=None):
 
     # Define colors based on bike count
     color_map = [
-        'red' if count == 0 else ('orange' if count <= 5 else ('green' if count <= 15 else 'blue'))
+        'red' if count == 0 else ('orange' if count <= 20 else ('green' if count <= 35 else 'blue'))
         for count in bike_counts
     ]
 
@@ -141,14 +141,16 @@ def update_availability_rate(n_intervals):
 
 
 def simulation_loop():
-    simulation_duration = 15  # seconds 
+    simulation_duration = 60  # seconds 
     simulation_delay = simulation_duration / len(rides_data)
-
-    # start counting time
-    start_time = time.time()
     
     try:
         print("\nRunning simulation...")
+        time.sleep(5)
+
+        # start counting time
+        start_time = time.time()
+        
         # Simulate rides
         for t, ride in rides_data.iterrows():
             for station in stations:

@@ -55,8 +55,8 @@ for _, row in stations_data.iterrows():
         station_name=row['station_name'],
         lat=row['lat'],
         lng=row['lng'],
-        initial_bike_count=10,  # Example initial bike count
-        capacity=15  # Set capacity to 15
+        initial_bike_count=22,  # Example initial bike count
+        capacity=35   # Set capacity for each station
 
     )
     stations.append(station)
