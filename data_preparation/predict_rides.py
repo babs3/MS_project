@@ -180,6 +180,7 @@ def rebalancing(predicted_df):
 
     # Rebalanced rides list
     rebalanced_rides = []
+    
 
     # Process rows starting from the second one
     for i, row in predicted_df.iterrows():
@@ -208,7 +209,7 @@ def rebalancing(predicted_df):
         demand = {station: median_bikes - bikes for station, bikes in bike_tracker.items() if bikes < median_bikes}
 
         # Redirect rides based on demand and probability
-        if bike_tracker[start_station] >= 22:  # Only stations with 10+ bikes consider redirecting
+        if bike_tracker[start_station] >= 12:  # Only stations with 10+ bikes consider redirecting
             for _ in range(rides):
                 if random.random() < 0.2:  # 0.2 probability to redirect
                     # Redirect to the highest demand station
@@ -251,9 +252,10 @@ def rebalancing(predicted_df):
 
     # Output
     print("Final bike tracker:")
-    print(bike_tracker)
-    print("\nRebalanced rides:")
-    print(rebalanced_df)
+    median = median_bikes = np.median(list(bike_tracker.values()))
+    print(median)
+    # print("\nRebalanced rides:")
+    # print(rebalanced_df)
     return rebalanced_df
 
 def time_to_minutes(time_obj):
