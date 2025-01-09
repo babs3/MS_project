@@ -28,11 +28,11 @@ rides_data = pd.DataFrame({
 })
 
 # Read the CSV file into a DataFrame
-all_rides = pd.read_csv('./small_datasets/some_predicted_rides.csv')
+all_rides = pd.read_csv('./small_datasets/some_predicted_rides1.csv')
 rides_data = all_rides.rename(columns={
-    'start_time': 'start_time',
-    'start_station_id': 'start_station_id',
-    'end_station_id': 'end_station_id'
+    '15_min_interval': 'start_time',
+    'departure_station_id': 'start_station_id',
+    'chosen_arrival_station': 'end_station_id'
 })
 # Ensure the DataFrame has the correct columns and order
 rides_data = rides_data[['start_time', 'start_station_id', 'end_station_id']]
