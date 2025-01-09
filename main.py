@@ -27,7 +27,7 @@ def create_map_figure(center=None, zoom=None):
 
     max_bikes = max(bike_counts) if bike_counts else 1  # Avoid division by zero
     size_map = [
-        7 + (count / max_bikes) * 18  # Scale size proportionally between 7 and 25
+        5 + (count / max_bikes) * 25  # Scale size proportionally between 5 and 30
         for count in bike_counts
     ]
 

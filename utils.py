@@ -28,11 +28,11 @@ rides_data = pd.DataFrame({
 })
 
 # Read the CSV file into a DataFrame
-all_rides = pd.read_csv('./small_datasets/descriptive_rides.csv')
+#all_rides = pd.read_csv('./small_datasets/descriptive_rides.csv')
 #all_rides = pd.read_csv('./small_datasets/rebalanced0.2.csv')
 #all_rides = pd.read_csv('./small_datasets/rebalanced0.4.csv')
 #all_rides = pd.read_csv('./small_datasets/rebalanced0.6.csv')
-#all_rides = pd.read_csv('./small_datasets/rebalanced0.8.csv')
+all_rides = pd.read_csv('./small_datasets/rebalanced0.8.csv')
 #all_rides = pd.read_csv('./small_datasets/rebalanced100.csv')
 rides_data = all_rides.rename(columns={
     '15_min_interval': 'start_time',
@@ -48,7 +48,7 @@ end_station_id = rides_data['end_station_id'].values
 station_id = pd.concat([rides_data['start_station_id'], rides_data['end_station_id']], axis=0)
 station_id = station_id.unique()
 # stay only with the rows that have the station_id in the station_id of station_data
-stations_data = stations_data[stations_data['station_id'].isin(station_id)]
+#stations_data = stations_data[stations_data['station_id'].isin(station_id)]
 
 # Initialize Stations
 print("\nInitializing Stations...")
