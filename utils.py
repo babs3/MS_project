@@ -28,7 +28,7 @@ rides_data = pd.DataFrame({
 })
 
 # Read the CSV file into a DataFrame
-all_rides = pd.read_csv('./small_datasets/some_predicted_rides1.csv')
+all_rides = pd.read_csv('./small_datasets/rebalanced0.2.csv')
 rides_data = all_rides.rename(columns={
     '15_min_interval': 'start_time',
     'departure_station_id': 'start_station_id',

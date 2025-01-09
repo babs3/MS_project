@@ -11,6 +11,7 @@ script_dir = os.path.dirname(__file__)
 file_path = os.path.join(script_dir, '../datasets/all_trips.csv')
 output_path = os.path.join(script_dir, '../small_datasets/some_predicted_rides.csv')
 output_path1 = os.path.join(script_dir, '../small_datasets/some_predicted_rides1.csv')
+output_path2 = os.path.join(script_dir, '../small_datasets/rebalanced0.2.csv')
 
 def main():
     num_of_rides = 5000
@@ -156,132 +157,104 @@ def main():
     # Create the final DataFrame
     predicted_rides_with_arrivals_df = pd.DataFrame(predicted_rides_with_arrivals)
 
-    expanded_df = predicted_rides_with_arrivals_df.loc[predicted_rides_with_arrivals_df.index.repeat(predicted_rides_with_arrivals_df['predicted_rides'])].reset_index(drop=True)
+    # expanded_df = predicted_rides_with_arrivals_df.loc[predicted_rides_with_arrivals_df.index.repeat(predicted_rides_with_arrivals_df['predicted_rides'])].reset_index(drop=True)
 
-    expanded_df.to_csv(output_path1, index=False)
-
-
+    # expanded_df.to_csv(output_path1, index=False)
 
 
-    ##################################################################################################
-
-
-    # Group by date and 15-minute intervals, and count the number of departures
-    #departures_per_interval = df.groupby(['date', '15_min_interval']).size().reset_index(name='departures')
-    # print(df['15_min_interval'])
-    # departures_per_interval = (
-    #     df.groupby(['date', '15_min_interval', 'start_station_id'])
-    #     .size()
-    #     .reset_index(name='departures')
-    # )
+    rebalanced_df = rebalancing(predicted_rides_with_arrivals_df)
     
-    #print(departures_per_interval)
-    # Fit a KDE for each station
-    # station_kdes = {}
-    # for station_id, group in departures_per_interval.groupby('start_station_id'):
-    #     avg_departures = group.groupby('15_min_interval')['departures'].mean()
-    #     print(group)
-    #     print(station_id)
-    #     if len(avg_departures) > 1 and avg_departures.std() > 0:
-    #         station_kdes[station_id] = gaussian_kde(avg_departures)
-    #     else:
-    #     # Store a fallback value (e.g., the mean or None)
-    #         station_kdes[station_id] = None
-        #station_kdes[station_id] = gaussian_kde(avg_departures)
+    expanded_df = rebalanced_df.loc[rebalanced_df.index.repeat(rebalanced_df['ride'])].reset_index(drop=True)
 
-    # # Generate predictions for each 15-min mark
-    # earliest_date = departures_per_interval['date'].min()
-    # latest_date = departures_per_interval['date'].max()
+    expanded_df.to_csv(output_path2, index=False)
 
-    # # Generate all 15-min intervals from the earliest to latest date
-    # all_intervals = pd.date_range(
-    #     start=f"{earliest_date} 00:00:00",
-    #     end=f"{latest_date} 23:59:59",
-    #     freq='15min'
-    # )
+ 
+
+def rebalancing(predicted_df):
+    stations = pd.concat([
+        predicted_df['departure_station_id'], 
+        predicted_df['chosen_arrival_station']
+    ]).unique()
+    bike_tracker = {station: 22 for station in stations}
+    capacity = 35
+
+    # Rebalanced rides list
+    rebalanced_rides = []
+
+    # Process rows starting from the second one
+    for i, row in predicted_df.iterrows():
     
-    # print(all_intervals)
-    # #print(station_kdes.items())
-    # predicted_rides = []
-    # for interval in all_intervals:
-    #     for station_id, kde in station_kdes.items():
-    #         # Predict the probability of departure
-    #         if kde is not None:
-    #         # Convert the interval to its corresponding index (e.g., 0, 1, ..., 95)
-    #             interval_index = time_to_minutes(interval.time()) // 15
-                
-    #             # KDE expects numeric values that align with training data (avg_departures)
-    #             prob_departures = kde.evaluate([interval_index])[0]  # Evaluate the KDE
-    #             num_departures = int(np.random.poisson(prob_departures))  # Simulate departures
-            
-    #         if num_departures > 0:
-    #             for _ in range(num_departures):
-    #                 predicted_rides.append({
-    #                     '15_min_interval': interval,
-    #                     'start_station_id': station_id,
-    #                     'departure_count': 1
-    #                 })
+        # Extract details
+        start_station = row['departure_station_id']
+        end_station = row['chosen_arrival_station']
+        rides = row['predicted_rides']
+        
+        # Subtract departures from the starting station
+        if bike_tracker[start_station] >= rides:
+            bike_tracker[start_station] -= rides
+        else:
+            #rides = bike_tracker[start_station]  # Limit departures to available bikes
+            bike_tracker[start_station] = 0
 
-    # # Convert predicted rides to a DataFrame
-    # predicted_rides_df = pd.DataFrame(predicted_rides)
+        # Add arrivals to the ending station
+        if bike_tracker[end_station] + rides <= capacity:
+            bike_tracker[end_station] += rides
+        else:
+            # Cap arrivals to the capacity
+            bike_tracker[end_station] = capacity
 
-    # # Save predicted rides
-    # predicted_rides_df.to_csv(output_path1, index=False)
+        # Recalculate median and demand
+        median_bikes = np.median(list(bike_tracker.values()))
+        demand = {station: median_bikes - bikes for station, bikes in bike_tracker.items() if bikes < median_bikes}
 
-    # print("Predictions completed and saved!")
-    # # Extract only the time part for 15-minute intervals
-    # departures_per_interval['time'] = departures_per_interval['15_min_interval'].dt.time
+        # Redirect rides based on demand and probability
+        if bike_tracker[start_station] >= 22:  # Only stations with 10+ bikes consider redirecting
+            for _ in range(rides):
+                if random.random() < 0.2:  # 0.2 probability to redirect
+                    # Redirect to the highest demand station
+                    if demand:
+                        highest_demand_station = min(demand, key=demand.get)
+                        bike_tracker[highest_demand_station] += 1
+                        rebalanced_rides.append({
+                            '15_min_interval': row['15_min_interval'],
+                            'departure_station_id': start_station,
+                            'chosen_arrival_station': highest_demand_station,
+                            'ride': 1
+                        })
+                    else:
+                        # No demand, ride continues to the original destination
+                        rebalanced_rides.append({
+                            '15_min_interval': row['15_min_interval'],
+                            'departure_station_id': start_station,
+                            'chosen_arrival_station': end_station,
+                            'ride': 1
+                        })
+                else:
+                    # Ride continues to the original destination
+                    rebalanced_rides.append({
+                        '15_min_interval': row['15_min_interval'],
+                        'departure_station_id': start_station,
+                        'chosen_arrival_station': end_station,
+                        'ride': 1
+                    })
+        else:
+            # No redirection, all rides go to the original destination
+            rebalanced_rides.append({
+                '15_min_interval': row['15_min_interval'],
+                'departure_station_id': start_station,
+                'chosen_arrival_station': end_station,
+                'ride': rides
+            })
 
-    # # Group by time (15-minute intervals) and compute the average departures across all days
-    # avg_departures_per_15min = departures_per_interval.groupby('time')['departures'].mean()
+    # Convert rebalanced rides to a DataFrame
+    rebalanced_df = pd.DataFrame(rebalanced_rides)
 
-    # # Fit a Kernel Density Estimate (KDE) for the average departures
-    # print("\nFitting KDEs ...")
-    # departure_kde = gaussian_kde(avg_departures_per_15min)
-    
-
-    # # Fit KDEs for ride durations by station pairs
-    # duration_distributions = df.groupby(['start_station_id', 'end_station_id'])['ride_duration']
-    # duration_kdes = {}
-
-    # for (start_id, end_id), durations in duration_distributions:
-    #     durations = durations.to_numpy()  # Convert to a NumPy array for easier processing
-    #     if len(durations) > 1 and durations.std() > 0:  # Ensure there are at least two data points and non-zero variance
-    #         duration_kdes[(start_id, end_id)] = gaussian_kde(durations)
-    #     else:
-    #         # Fallback: Store the mean duration if variance is zero or not enough data
-    #         duration_kdes[(start_id, end_id)] = durations.mean() if len(durations) > 0 else None
-
-
-    # # Predict the next rides concurrently
-    # print("\nPredicting the next rides...")
-    # time.sleep(1)  # Allow time for the user to read the message
-    # current_time = pd.Timestamp.now()
-    # predicted_rides = []
-    # for i in range(num_of_rides):  # Predict N rides
-    #     predicted_ride = predict_next_ride(df, departure_kde, duration_kdes, current_time)
-    #     predicted_rides.append(predicted_ride)
-
-    #     # Update current time probabilistically, simulating overlapping rides
-    #     current_time += pd.Timedelta(minutes=random.uniform(5, 15))
-    #     print(f"Predicted ride {i + 1} at {predicted_ride['started_at']}")
-
-    # # Convert the predicted rides to a DataFrame
-    # predicted_rides_df = pd.DataFrame(predicted_rides)
-
-    # # change the start_at and end_time to datetime format
-    # predicted_rides_df['started_at'] = pd.to_datetime(predicted_rides_df['started_at'])
-    # predicted_rides_df['end_time'] = pd.to_datetime(predicted_rides_df['end_time'])
-
-    # # Clean the predicted rides DataFrame
-    # predicted_rides_df = clean_df(predicted_rides_df)
-
-    # # Save the predicted rides to a CSV file
-    # save_to_csv(predicted_rides_df, output_path)
-
-    # #plot_departures_sec(predicted_rides_df) do not work cause I have changed the start_time column - todo: fix this
-
-# Predict next ride details
+    # Output
+    print("Final bike tracker:")
+    print(bike_tracker)
+    print("\nRebalanced rides:")
+    print(rebalanced_df)
+    return rebalanced_df
 
 def time_to_minutes(time_obj):
     return time_obj.hour * 60 + time_obj.minute
