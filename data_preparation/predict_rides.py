@@ -10,11 +10,18 @@ import dask.dataframe as dd
 script_dir = os.path.dirname(__file__)
 file_path = os.path.join(script_dir, '../datasets/all_trips.csv')
 output_path = os.path.join(script_dir, '../small_datasets/some_predicted_rides.csv')
-output_path1 = os.path.join(script_dir, '../small_datasets/some_predicted_rides1.csv')
+output_path0 = os.path.join(script_dir, '../small_datasets/descriptive_rides.csv')
 output_path2 = os.path.join(script_dir, '../small_datasets/rebalanced0.2.csv')
+output_path4 = os.path.join(script_dir, '../small_datasets/rebalanced0.4.csv')
+output_path6 = os.path.join(script_dir, '../small_datasets/rebalanced0.6.csv')
+output_path8 = os.path.join(script_dir, '../small_datasets/rebalanced0.8.csv')
+output_path100 = os.path.join(script_dir, '../small_datasets/rebalanced100.csv')
+
+
+probability_to_redirect = 1.0
+
 
 def main():
-    num_of_rides = 5000
 
     # Load the dataset
     df = pd.read_csv(file_path)
@@ -159,12 +166,12 @@ def main():
 
     # To generate descriptive csv
     expanded_df = predicted_rides_with_arrivals_df.loc[predicted_rides_with_arrivals_df.index.repeat(predicted_rides_with_arrivals_df['predicted_rides'])].reset_index(drop=True)
-    expanded_df.to_csv(output_path1, index=False)
+    expanded_df.to_csv(output_path0, index=False)
 
     # To generate rebalanced csv
     #rebalanced_df = rebalancing(predicted_rides_with_arrivals_df)
     #expanded_df = rebalanced_df.loc[rebalanced_df.index.repeat(rebalanced_df['ride'])].reset_index(drop=True)
-    #expanded_df.to_csv(output_path2, index=False)
+    #expanded_df.to_csv(output_path100, index=False)
 
  
 
@@ -209,7 +216,7 @@ def rebalancing(predicted_df):
         # Redirect rides based on demand and probability
         if bike_tracker[start_station] >= 12:  # Only stations with 10+ bikes consider redirecting
             for _ in range(rides):
-                if random.random() < 0.2:  # 0.2 probability to redirect
+                if random.random() < probability_to_redirect:  # probability to redirect defined at the top
                     # Redirect to the highest demand station
                     if demand:
                         highest_demand_station = min(demand, key=demand.get)

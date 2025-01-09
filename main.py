@@ -180,7 +180,7 @@ def simulation_loop():
 
         # Calculate total elapsed time
         total_elapsed_time = time.time() - start_time
-        print(f"Simulation completed in {total_elapsed_time:.2f} seconds")
+        print(f"\nSimulation completed in {total_elapsed_time:.2f} seconds")
         print(f"System-wide Availability Rate: {availability_rate:.2%}")
 
         get_insights() # Get insights of stations after simulation
