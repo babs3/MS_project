@@ -3,6 +3,7 @@ import threading
 from dash import Dash, dcc, html, Input, Output, State
 import plotly.graph_objects as go
 from utils import rides_data, stations  # Assuming stations is a shared list of Station objects
+from utils import calculate_availability_rate
 
 # Dash App Initialization
 app = Dash(__name__)
@@ -16,6 +17,7 @@ def create_map_figure(center=None, zoom=None):
     lngs = [station.lng for station in stations]
     bike_counts = [station.bike_count for station in stations]
     station_names = [station.station_name for station in stations]
+    availability_rates = [station.get_availability_rate() for station in stations]
 
     # Define colors based on bike count
     color_map = [
@@ -29,10 +31,10 @@ def create_map_figure(center=None, zoom=None):
         for count in bike_counts
     ]
 
-    # Create hover text
+    # Create hover text with availability rate
     hover_text = [
-        f"{name}<br>Bikes: {count}"
-        for name, count in zip(station_names, bike_counts)
+        f"{name}<br>Bikes: {count}/{station.capacity}<br>Availability: {rate:.2%}"
+        for name, count, station, rate in zip(station_names, bike_counts, stations, availability_rates)
     ]
 
     # Add a Scattermapbox trace for the stations
@@ -48,7 +50,7 @@ def create_map_figure(center=None, zoom=None):
         ),
         text=hover_text,  # Dynamic hover text
         hoverinfo='text',
-        showlegend=False  # Do not show this trace in the legend
+        showlegend=False
     ))
 
     # Add dummy traces for the legend
@@ -88,20 +90,18 @@ def create_map_figure(center=None, zoom=None):
         showlegend=True,
         hovermode='closest',
         dragmode='zoom',
-        margin=dict(l=10, r=10, t=40, b=20)  # Minimize margins for better use of screen space
+        margin=dict(l=10, r=10, t=40, b=20)
     )
 
     return fig
 
+
 # Dash App Layout
 app.layout = html.Div([
-    dcc.Graph(
-        id='map',
-        config={'scrollZoom': True},
-        style={'width': '100%', 'height': '100vh'}  # Use full viewport height
-    ),
-    dcc.Interval(id='interval-component', interval=1000, n_intervals=0),  # Auto-update every second
-    dcc.Store(id='map-state', data={'center': None, 'zoom': None})  # Store for map center and zoom
+    dcc.Graph(id='map', config={'scrollZoom': True}, style={'width': '100%', 'height': '90vh'}),
+    html.Div(id='availability-rate', style={'textAlign': 'center', 'fontSize': '20px', 'margin': '10px'}),
+    dcc.Interval(id='interval-component', interval=2000, n_intervals=0),  # Auto-update every 2 seconds
+    dcc.Store(id='map-state', data={'center': None, 'zoom': None})  # Store map state
 ], style={'margin': '0', 'padding': '0', 'height': '100vh'})  # Ensure no margins and full height
 
 
@@ -130,38 +130,61 @@ def update_map_state(relayout_data, map_state):
         map_state['zoom'] = relayout_data['mapbox.zoom']
     return map_state
 
+# Callback to update the System-wide Availability Rate
+@app.callback(
+    Output('availability-rate', 'children'),
+    [Input('interval-component', 'n_intervals')]
+)
+def update_availability_rate(n_intervals):
+    rate = calculate_availability_rate()
+    return f"System-wide Availability Rate: {rate:.2%}"
+
 
 def simulation_loop():
-    simulation_duration = 15  # seconds?
+    simulation_duration = 15  # seconds 
+    simulation_delay = simulation_duration / len(rides_data)
+
+    # start counting time
+    start_time = time.time()
     
     try:
         print("\nRunning simulation...")
-        # Run the simulation
+        # Simulate rides
         for t, ride in rides_data.iterrows():
-            
-            # Get the start and end stations for the current ride
             for station in stations:
                 if station.station_id == ride['start_station_id']:
-                    if (station.bike_count > 0):
+                    if station.bike_count > 0:
                         perform_ride = True
                         station.remove_bike()
-                    else:
-                        perform_ride = False
-                    #station.log_state()
-            if (perform_ride):
+                        break
+
+            if perform_ride:
                 for station in stations:
                     if station.station_id == ride['end_station_id']:
+                        #if station.bike_count < station.capacity:  # Check if the station is not full
                         station.add_bike()
-                        #station.log_state()
+                        break
 
-            time.sleep(simulation_duration / len(rides_data))  # Scale timing dynamically ??
+            # Calculate and log the system-wide availability rate
+            availability_rate = calculate_availability_rate()
+
+            # Calculate the elapsed time
+            elapsed_time = time.time() - start_time
+            expected_time = (t + 1) * simulation_delay
+            sleep_time = expected_time - elapsed_time
+
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+
+        # Calculate total elapsed time
+        total_elapsed_time = time.time() - start_time
+        print(f"Simulation completed in {total_elapsed_time:.2f} seconds")
+        print(f"System-wide Availability Rate: {availability_rate:.2%}")
+
 
     except KeyboardInterrupt:
         print("Simulation stopped by user.")
-    finally:
-        print("Simulation is over.")
-        time.sleep(2)
-
+    
 
 # Run Dash App and Simulation in Parallel
 if __name__ == '__main__':
