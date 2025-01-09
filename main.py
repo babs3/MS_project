@@ -3,7 +3,7 @@ import threading
 from dash import Dash, dcc, html, Input, Output, State
 import plotly.graph_objects as go
 from utils import rides_data, stations  # Assuming stations is a shared list of Station objects
-from utils import calculate_availability_rate
+from utils import calculate_availability_rate, get_insights
 
 # Dash App Initialization
 app = Dash(__name__)
@@ -150,7 +150,7 @@ def simulation_loop():
 
         # start counting time
         start_time = time.time()
-        
+
         # Simulate rides
         for t, ride in rides_data.iterrows():
             for station in stations:
@@ -182,6 +182,9 @@ def simulation_loop():
         total_elapsed_time = time.time() - start_time
         print(f"Simulation completed in {total_elapsed_time:.2f} seconds")
         print(f"System-wide Availability Rate: {availability_rate:.2%}")
+
+        get_insights() # Get insights of stations after simulation
+        
 
 
     except KeyboardInterrupt:

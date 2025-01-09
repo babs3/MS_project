@@ -157,16 +157,14 @@ def main():
     # Create the final DataFrame
     predicted_rides_with_arrivals_df = pd.DataFrame(predicted_rides_with_arrivals)
 
-    # expanded_df = predicted_rides_with_arrivals_df.loc[predicted_rides_with_arrivals_df.index.repeat(predicted_rides_with_arrivals_df['predicted_rides'])].reset_index(drop=True)
+    # To generate descriptive csv
+    expanded_df = predicted_rides_with_arrivals_df.loc[predicted_rides_with_arrivals_df.index.repeat(predicted_rides_with_arrivals_df['predicted_rides'])].reset_index(drop=True)
+    expanded_df.to_csv(output_path1, index=False)
 
-    # expanded_df.to_csv(output_path1, index=False)
-
-
-    rebalanced_df = rebalancing(predicted_rides_with_arrivals_df)
-    
-    expanded_df = rebalanced_df.loc[rebalanced_df.index.repeat(rebalanced_df['ride'])].reset_index(drop=True)
-
-    expanded_df.to_csv(output_path2, index=False)
+    # To generate rebalanced csv
+    #rebalanced_df = rebalancing(predicted_rides_with_arrivals_df)
+    #expanded_df = rebalanced_df.loc[rebalanced_df.index.repeat(rebalanced_df['ride'])].reset_index(drop=True)
+    #expanded_df.to_csv(output_path2, index=False)
 
  
 

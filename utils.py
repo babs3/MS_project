@@ -28,7 +28,8 @@ rides_data = pd.DataFrame({
 })
 
 # Read the CSV file into a DataFrame
-all_rides = pd.read_csv('./small_datasets/rebalanced0.2.csv')
+#all_rides = pd.read_csv('./small_datasets/rebalanced0.2.csv')
+all_rides = pd.read_csv('./small_datasets/some_predicted_rides1.csv')
 rides_data = all_rides.rename(columns={
     '15_min_interval': 'start_time',
     'departure_station_id': 'start_station_id',
@@ -79,3 +80,47 @@ def calculate_availability_rate():
 
     return system_availability_rate
 
+def get_insights():
+        
+    # Insights of stations after simulation
+    color_stations_dict = {
+        'red': 0,
+        'orange': 0,
+        'green': 0,
+        'blue': 0
+    }
+    for station in stations:
+        #station.log_state()
+        if station.bike_count == 0:
+            color_stations_dict['red'] += 1
+        elif station.bike_count <= 20:
+            color_stations_dict['orange'] += 1
+        elif station.bike_count <= 35:
+            color_stations_dict['green'] += 1
+        else:
+            color_stations_dict['blue'] += 1
+
+    print("\nStation Insights:")
+    for color, count in color_stations_dict.items():
+        print(f"{count} stations with {color} color")
+
+
+    # Insights bikes per coloured station
+    bikes_per_coloured_station_dict = {
+        'red': 0,
+        'orange': 0,
+        'green': 0,
+        'blue': 0
+    }
+    print("\nBikes per coloured station:")
+    for station in stations:
+        if station.bike_count <= 20:
+            bikes_per_coloured_station_dict['orange'] += station.bike_count
+        elif station.bike_count <= 35:
+            bikes_per_coloured_station_dict['green'] += station.bike_count
+        else:
+            bikes_per_coloured_station_dict['blue'] += station.bike_count
+
+    print("\Bikes per station Insights:")
+    for color, count in bikes_per_coloured_station_dict.items():
+        print(f"{count} bikes in {color} stations")
