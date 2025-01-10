@@ -18,7 +18,7 @@ output_path8 = os.path.join(script_dir, '../small_datasets/rebalanced0.8.csv')
 output_path100 = os.path.join(script_dir, '../small_datasets/rebalanced100.csv')
 
 
-probability_to_redirect = 1.0
+probability_to_redirect = 0.2
 
 
 def main():
@@ -156,7 +156,7 @@ def main():
     # Step 6: Create the final DataFrame
     predicted_rides_with_arrivals_df = pd.DataFrame(predicted_rides_with_arrivals)
 
-    # expanded_df = predicted_rides_with_arrivals_df.loc[predicted_rides_with_arrivals_df.index.repeat(predicted_rides_with_arrivals_df['predicted_rides'])].reset_index(drop=True)
+    expanded_df1 = predicted_rides_with_arrivals_df.loc[predicted_rides_with_arrivals_df.index.repeat(predicted_rides_with_arrivals_df['predicted_rides'])].reset_index(drop=True)
 
     # expanded_df.to_csv(output_path1, index=False)
 
@@ -165,6 +165,9 @@ def main():
     expanded_df = rebalanced_df.loc[rebalanced_df.index.repeat(rebalanced_df['ride'])].reset_index(drop=True)
 
     expanded_df.to_csv(output_path2, index=False)
+    
+    print(len(expanded_df1))
+    print(len(expanded_df))
 
  
 
@@ -188,36 +191,45 @@ def rebalancing(predicted_df):
         end_station = row['chosen_arrival_station']
         rides = row['predicted_rides']
         
-        # Update bike counts for start and end stations
-        bike_tracker[start_station] = max(0, bike_tracker[start_station] - rides)
-        bike_tracker[end_station] = min(capacity, bike_tracker[end_station] + rides)
-
-        # Calculate median bikes and demand
-        median_bikes = np.median(list(bike_tracker.values()))
-        demand = {station: median_bikes - bikes for station, bikes in bike_tracker.items() if bikes < median_bikes}
+       
 
         # Only redistribute if start station has 12 or more bikes
+        # if bike_tracker[start_station] >= 12:  
+        #     for _ in range(rides):
+                
+        if bike_tracker[start_station] >= rides:
+            bike_tracker[start_station] -= rides
+        else:
+  
+            bike_tracker[start_station] = 0
+
+  
+        if bike_tracker[end_station] + rides <= capacity:
+            bike_tracker[end_station] += rides
+        else:
+  
+            bike_tracker[end_station] = capacity
+
+  
+        median_bikes = np.median(list(bike_tracker.values()))
+        demand = {station: median_bikes - bikes for station, bikes in bike_tracker.items() if bikes < median_bikes}
+        
         if bike_tracker[start_station] >= 12:  
             for _ in range(rides):
-                if random.random() < 0.2:  
+                if random.random() < probability_to_redirect:  
+                    
                     if demand:
-                        # Find the 5 highest-demand stations
-                        top_demand_stations = sorted(demand, key=demand.get)[:5]
-
-                        # Redistribute to the top 5 stations iteratively
-                        for highest_demand_station in top_demand_stations:
-                            if bike_tracker[start_station] < 12:  # Stop redistributing if fewer than 12 bikes remain
-                                break
-                            bike_tracker[highest_demand_station] += 1
-                            bike_tracker[start_station] -= 1
-                            rebalanced_rides.append({
-                                '15_min_interval': row['15_min_interval'],
-                                'departure_station_id': start_station,
-                                'chosen_arrival_station': highest_demand_station,
-                                'ride': 1
-                            })
+                        
+                        highest_demand_station = min(demand, key=demand.get)
+                        bike_tracker[highest_demand_station] += 1
+                        rebalanced_rides.append({
+                            '15_min_interval': row['15_min_interval'],
+                            'departure_station_id': start_station,
+                            'chosen_arrival_station': highest_demand_station,
+                            'ride': 1
+                        })
                     else:
-                        # No demand stations, send bikes to original end station
+                    
                         rebalanced_rides.append({
                             '15_min_interval': row['15_min_interval'],
                             'departure_station_id': start_station,
@@ -225,7 +237,7 @@ def rebalancing(predicted_df):
                             'ride': 1
                         })
                 else:
-                    # Normal ride to end station
+                    
                     rebalanced_rides.append({
                         '15_min_interval': row['15_min_interval'],
                         'departure_station_id': start_station,
@@ -233,73 +245,14 @@ def rebalancing(predicted_df):
                         'ride': 1
                     })
         else:
-            # Directly assign rides to end station without redistribution
+            
             rebalanced_rides.append({
                 '15_min_interval': row['15_min_interval'],
                 'departure_station_id': start_station,
                 'chosen_arrival_station': end_station,
                 'ride': rides
             })
-
-        
-  
-        # if bike_tracker[start_station] >= rides:
-        #     bike_tracker[start_station] -= rides
-        # else:
-  
-        #     bike_tracker[start_station] = 0
-
-  
-        # if bike_tracker[end_station] + rides <= capacity:
-        #     bike_tracker[end_station] += rides
-        # else:
-  
-        #     bike_tracker[end_station] = capacity
-
-  
-        # median_bikes = np.median(list(bike_tracker.values()))
-        # demand = {station: median_bikes - bikes for station, bikes in bike_tracker.items() if bikes < median_bikes}
-
-  
-        # if bike_tracker[start_station] >= 12:  
-        #     for _ in range(rides):
-        #         if random.random() < 0.2:  
-                    
-        #             if demand:
-        #                 highest_demand_station = min(demand, key=demand.get)
-        #                 bike_tracker[highest_demand_station] += 1
-        #                 rebalanced_rides.append({
-        #                     '15_min_interval': row['15_min_interval'],
-        #                     'departure_station_id': start_station,
-        #                     'chosen_arrival_station': highest_demand_station,
-        #                     'ride': 1
-        #                 })
-        #             else:
-                    
-        #                 rebalanced_rides.append({
-        #                     '15_min_interval': row['15_min_interval'],
-        #                     'departure_station_id': start_station,
-        #                     'chosen_arrival_station': end_station,
-        #                     'ride': 1
-        #                 })
-        #         else:
-                    
-        #             rebalanced_rides.append({
-        #                 '15_min_interval': row['15_min_interval'],
-        #                 'departure_station_id': start_station,
-        #                 'chosen_arrival_station': end_station,
-        #                 'ride': 1
-        #             })
-        # else:
-            
-        #     rebalanced_rides.append({
-        #         '15_min_interval': row['15_min_interval'],
-        #         'departure_station_id': start_station,
-        #         'chosen_arrival_station': end_station,
-        #         'ride': rides
-        #     })
-
-    
+       
     rebalanced_df = pd.DataFrame(rebalanced_rides)
     
     print(median_bikes)
