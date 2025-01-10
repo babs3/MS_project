@@ -31,19 +31,19 @@ def main():
 
     # Step 1: Aggregate total departures per date and interval
     grouped = df.groupby(['date', '15_min_interval']).agg(
-        total_departures=('ride_duration', 'count')  # Count the number of rides as departures
+        total_departures=('ride_duration', 'count')  
     ).reset_index()
     
     
     departures_per_station = (
         df.groupby(['15_min_interval', 'start_station_id','date'])['ride_duration']
-        .count()  # Count the number of rides at each station for each interval
-        .reset_index(name='departures')  # 'departures' is the number of rides at each station/interval
+        .count()  
+        .reset_index(name='departures') 
     )
     
     station_probs = (
         departures_per_station.groupby(['15_min_interval','date'])
-        .apply(lambda x: x['departures'] / x['departures'].sum())  # Normalize
+        .apply(lambda x: x['departures'] / x['departures'].sum())  
         .reset_index(name='station_probability')
     )
     
@@ -55,30 +55,29 @@ def main():
     
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
 
-    #print(df[df['date'] == '2020-08-01'])
-    # Step 1: Iterate through each unique date
+    # Step 2: Iterate through each unique date
     for date in grouped['date'].unique():
         date_group = grouped[grouped['date'] == date]
         for interval in date_group['15_min_interval']:
-            # Filter for the current date and interval
+            
             interval_data = station_probs[(station_probs['date'] == date) & (station_probs['15_min_interval'] == interval)]
             print(interval_data)
-            # Total departures for the current interval (based on KDE or actual distribution)
+            
             total_departures_at_interval = grouped[(grouped['date'] == date) & (grouped['15_min_interval'] == interval)]
             
             if not total_departures_at_interval.empty:
-            # Total departures for the current interval (based on KDE or actual distribution)
+            
                 total_departures_at_interval = total_departures_at_interval['total_departures'].values[0]
                 
-                # Sample the number of departures for each station
+                
                 for _, row in interval_data.iterrows():
                     station_id = row['level_2']
                     station_prob = row['station_probability']
                     
-                    # For each station, sample the number of rides (Poisson or similar distribution could be used)
+                    
                     predicted_departures = np.random.poisson(total_departures_at_interval * station_prob)
 
-                    # Append the result to the list
+                    
                     predicted_rides.append({
                         'date': date,
                         '15_min_interval': interval,
@@ -86,33 +85,26 @@ def main():
                         'predicted_rides': predicted_departures
                     })
 
-    # # Convert the list of results to a DataFrame
+    #Step 3: Convert to dataframe and filter through the specific date    
     predicted_rides_df = pd.DataFrame(predicted_rides)
-    
-    print(predicted_rides_df)
-    
-   # print(predicted_rides_df['date'])
    
     predicted_rides_df['date'] = pd.to_datetime(predicted_rides_df['date'], errors='coerce')
     
     filtered_predicted_rides = predicted_rides_df[predicted_rides_df['date'] == specific_date]
     
-    #print(filtered_predicted_rides)
-
+    #Step 4: Fetch arrivals for the departures 
     arrivals_per_station = df.groupby(['date', '15_min_interval', 'end_station_id']).size().reset_index(name='arrivals')
 
-
-    #print(arrivals_per_station)
     arrival_probs = (
         arrivals_per_station.groupby(['date', '15_min_interval'])
         .apply(lambda x: x.assign(arrival_probability=x['arrivals'] / x['arrivals'].sum()))
         .reset_index(drop=True)
     )
-    #predicted_rides_df['date'] = pd.to_datetime(predicted_rides_df['date'], errors='coerce')
+    
     filtered_arrival_probs = arrival_probs[arrival_probs['date'] == specific_date]
-    #print(arrival_probs)
-
-    # Step 2: Iterate over predicted departures and determine arrival stations
+    
+    
+    #Step 5: Add the arrivals to departures based on historical data
     predicted_rides_with_arrivals = []
     filtered_arrival_probs.set_index(['date', '15_min_interval'], inplace=True)
 
@@ -125,13 +117,13 @@ def main():
         try:
             possible_arrivals = filtered_arrival_probs.loc[(departure_date, departure_interval)]
         except KeyError:
-            # If no match found
+            
             print(f"No possible arrivals for {departure_date}, {departure_interval}")
             continue
         
         print(possible_arrivals)
 
-        # Normalize probabilities for arrivals
+        
         possible_arrivals = (
             possible_arrivals.groupby('end_station_id')
             .agg({'arrival_probability': 'sum'})
@@ -141,11 +133,11 @@ def main():
             possible_arrivals['arrival_probability'] / possible_arrivals['arrival_probability'].sum()
         )
 
-        # Choose an arrival station
+        
         chosen_station_idx = possible_arrivals['normalized_prob'].sample(weights=possible_arrivals['normalized_prob']).index[0]
         chosen_station = possible_arrivals.loc[chosen_station_idx, 'end_station_id']
 
-        # Append results
+        
         predicted_rides_with_arrivals.append({
             'date': departure_date,
             '15_min_interval': departure_interval,
@@ -154,13 +146,12 @@ def main():
             'chosen_arrival_station': chosen_station
         })
 
-    # Create the final DataFrame
+    # Step 6: Create the final DataFrame
     predicted_rides_with_arrivals_df = pd.DataFrame(predicted_rides_with_arrivals)
 
     # expanded_df = predicted_rides_with_arrivals_df.loc[predicted_rides_with_arrivals_df.index.repeat(predicted_rides_with_arrivals_df['predicted_rides'])].reset_index(drop=True)
 
     # expanded_df.to_csv(output_path1, index=False)
-
 
     rebalanced_df = rebalancing(predicted_rides_with_arrivals_df)
     
@@ -178,52 +169,48 @@ def rebalancing(predicted_df):
     bike_tracker = {station: 22 for station in stations}
     capacity = 35
 
-    # Rebalanced rides list
+    
     rebalanced_rides = []
     
 
-    # Process rows starting from the second one
+  
     for i, row in predicted_df.iterrows():
     
-        # Extract details
+  
         start_station = row['departure_station_id']
         end_station = row['chosen_arrival_station']
         rides = row['predicted_rides']
         
-        # Subtract departures from the starting station
-        if bike_tracker[start_station] >= rides:
-            bike_tracker[start_station] -= rides
-        else:
-            #rides = bike_tracker[start_station]  # Limit departures to available bikes
-            bike_tracker[start_station] = 0
+        # Update bike counts for start and end stations
+        bike_tracker[start_station] = max(0, bike_tracker[start_station] - rides)
+        bike_tracker[end_station] = min(capacity, bike_tracker[end_station] + rides)
 
-        # Add arrivals to the ending station
-        if bike_tracker[end_station] + rides <= capacity:
-            bike_tracker[end_station] += rides
-        else:
-            # Cap arrivals to the capacity
-            bike_tracker[end_station] = capacity
-
-        # Recalculate median and demand
+        # Calculate median bikes and demand
         median_bikes = np.median(list(bike_tracker.values()))
         demand = {station: median_bikes - bikes for station, bikes in bike_tracker.items() if bikes < median_bikes}
 
-        # Redirect rides based on demand and probability
-        if bike_tracker[start_station] >= 12:  # Only stations with 10+ bikes consider redirecting
+        # Only redistribute if start station has 12 or more bikes
+        if bike_tracker[start_station] >= 12:  
             for _ in range(rides):
-                if random.random() < 0.2:  # 0.2 probability to redirect
-                    # Redirect to the highest demand station
+                if random.random() < 0.2:  
                     if demand:
-                        highest_demand_station = min(demand, key=demand.get)
-                        bike_tracker[highest_demand_station] += 1
-                        rebalanced_rides.append({
-                            '15_min_interval': row['15_min_interval'],
-                            'departure_station_id': start_station,
-                            'chosen_arrival_station': highest_demand_station,
-                            'ride': 1
-                        })
+                        # Find the 5 highest-demand stations
+                        top_demand_stations = sorted(demand, key=demand.get)[:5]
+
+                        # Redistribute to the top 5 stations iteratively
+                        for highest_demand_station in top_demand_stations:
+                            if bike_tracker[start_station] < 12:  # Stop redistributing if fewer than 12 bikes remain
+                                break
+                            bike_tracker[highest_demand_station] += 1
+                            bike_tracker[start_station] -= 1
+                            rebalanced_rides.append({
+                                '15_min_interval': row['15_min_interval'],
+                                'departure_station_id': start_station,
+                                'chosen_arrival_station': highest_demand_station,
+                                'ride': 1
+                            })
                     else:
-                        # No demand, ride continues to the original destination
+                        # No demand stations, send bikes to original end station
                         rebalanced_rides.append({
                             '15_min_interval': row['15_min_interval'],
                             'departure_station_id': start_station,
@@ -231,7 +218,7 @@ def rebalancing(predicted_df):
                             'ride': 1
                         })
                 else:
-                    # Ride continues to the original destination
+                    # Normal ride to end station
                     rebalanced_rides.append({
                         '15_min_interval': row['15_min_interval'],
                         'departure_station_id': start_station,
@@ -239,7 +226,7 @@ def rebalancing(predicted_df):
                         'ride': 1
                     })
         else:
-            # No redirection, all rides go to the original destination
+            # Directly assign rides to end station without redistribution
             rebalanced_rides.append({
                 '15_min_interval': row['15_min_interval'],
                 'departure_station_id': start_station,
@@ -247,15 +234,69 @@ def rebalancing(predicted_df):
                 'ride': rides
             })
 
-    # Convert rebalanced rides to a DataFrame
-    rebalanced_df = pd.DataFrame(rebalanced_rides)
+        
+  
+        # if bike_tracker[start_station] >= rides:
+        #     bike_tracker[start_station] -= rides
+        # else:
+  
+        #     bike_tracker[start_station] = 0
 
-    # Output
-    print("Final bike tracker:")
-    median = median_bikes = np.median(list(bike_tracker.values()))
-    print(median)
-    # print("\nRebalanced rides:")
-    # print(rebalanced_df)
+  
+        # if bike_tracker[end_station] + rides <= capacity:
+        #     bike_tracker[end_station] += rides
+        # else:
+  
+        #     bike_tracker[end_station] = capacity
+
+  
+        # median_bikes = np.median(list(bike_tracker.values()))
+        # demand = {station: median_bikes - bikes for station, bikes in bike_tracker.items() if bikes < median_bikes}
+
+  
+        # if bike_tracker[start_station] >= 12:  
+        #     for _ in range(rides):
+        #         if random.random() < 0.2:  
+                    
+        #             if demand:
+        #                 highest_demand_station = min(demand, key=demand.get)
+        #                 bike_tracker[highest_demand_station] += 1
+        #                 rebalanced_rides.append({
+        #                     '15_min_interval': row['15_min_interval'],
+        #                     'departure_station_id': start_station,
+        #                     'chosen_arrival_station': highest_demand_station,
+        #                     'ride': 1
+        #                 })
+        #             else:
+                    
+        #                 rebalanced_rides.append({
+        #                     '15_min_interval': row['15_min_interval'],
+        #                     'departure_station_id': start_station,
+        #                     'chosen_arrival_station': end_station,
+        #                     'ride': 1
+        #                 })
+        #         else:
+                    
+        #             rebalanced_rides.append({
+        #                 '15_min_interval': row['15_min_interval'],
+        #                 'departure_station_id': start_station,
+        #                 'chosen_arrival_station': end_station,
+        #                 'ride': 1
+        #             })
+        # else:
+            
+        #     rebalanced_rides.append({
+        #         '15_min_interval': row['15_min_interval'],
+        #         'departure_station_id': start_station,
+        #         'chosen_arrival_station': end_station,
+        #         'ride': rides
+        #     })
+
+    
+    rebalanced_df = pd.DataFrame(rebalanced_rides)
+    
+    print(median_bikes)
+
     return rebalanced_df
 
 def time_to_minutes(time_obj):
