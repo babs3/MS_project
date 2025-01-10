@@ -28,7 +28,12 @@ rides_data = pd.DataFrame({
 })
 
 # Read the CSV file into a DataFrame
-all_rides = pd.read_csv('./small_datasets/rebalanced0.2.csv')
+#all_rides = pd.read_csv('./small_datasets/descriptive_rides.csv')
+#all_rides = pd.read_csv('./small_datasets/rebalanced0.2.csv')
+#all_rides = pd.read_csv('./small_datasets/rebalanced0.4.csv')
+#all_rides = pd.read_csv('./small_datasets/rebalanced0.6.csv')
+all_rides = pd.read_csv('./small_datasets/rebalanced0.8.csv')
+#all_rides = pd.read_csv('./small_datasets/rebalanced100.csv')
 rides_data = all_rides.rename(columns={
     '15_min_interval': 'start_time',
     'departure_station_id': 'start_station_id',
@@ -43,10 +48,10 @@ end_station_id = rides_data['end_station_id'].values
 station_id = pd.concat([rides_data['start_station_id'], rides_data['end_station_id']], axis=0)
 station_id = station_id.unique()
 # stay only with the rows that have the station_id in the station_id of station_data
-stations_data = stations_data[stations_data['station_id'].isin(station_id)]
+#stations_data = stations_data[stations_data['station_id'].isin(station_id)]
 
 # Initialize Stations
-print("Initializing Stations...")
+print("\nInitializing Stations...")
 # Create station objects
 stations = []
 for _, row in stations_data.iterrows():
@@ -62,10 +67,10 @@ for _, row in stations_data.iterrows():
     stations.append(station)
 
 # Example: Log the state of all stations
-for station in stations:
-    station.log_state()
+#for station in stations:
+    #station.log_state()
 
-print("All stations initialized.")
+#print("All stations initialized.")
 
 def calculate_availability_rate():
     total_bikes = sum(station.bike_count for station in stations)
@@ -73,9 +78,47 @@ def calculate_availability_rate():
     system_availability_rate = total_bikes / total_capacity if total_capacity > 0 else 0
 
     # Log individual station availability rates
-    for station in stations:
-        station_availability_rate = station.bike_count / station.capacity
+    #for station in stations:
+        #station_availability_rate = station.bike_count / station.capacity
         #print(f"{station.station_name}: {station_availability_rate:.2%}")
 
     return system_availability_rate
 
+
+def get_insights():
+        
+    # Insights of stations after simulation
+    color_stations_dict = {
+        'red': 0,
+        'orange': 0,
+        'green': 0,
+        'blue': 0
+    }
+    # Insights bikes per coloured station
+    bikes_per_coloured_station_dict = {
+        'red': 0,
+        'orange': 0,
+        'green': 0,
+        'blue': 0
+    }
+    
+    for station in stations:
+        if station.bike_count == 0:
+            color_stations_dict['red'] += 1
+        elif station.bike_count <= 20:
+            color_stations_dict['orange'] += 1
+            bikes_per_coloured_station_dict['orange'] += station.bike_count
+        elif station.bike_count <= 35:
+            color_stations_dict['green'] += 1
+            bikes_per_coloured_station_dict['green'] += station.bike_count
+        else:
+            color_stations_dict['blue'] += 1
+            bikes_per_coloured_station_dict['blue'] += station.bike_count
+
+    print("\nStation Insights:")
+    for color, count in color_stations_dict.items():
+        print(f"{count} stations with {color} color")
+
+    print("\nBikes per station Insights:")
+    for color, count in bikes_per_coloured_station_dict.items():
+        print(f"{count} bikes in {color} stations")

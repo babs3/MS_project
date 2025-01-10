@@ -10,11 +10,18 @@ import dask.dataframe as dd
 script_dir = os.path.dirname(__file__)
 file_path = os.path.join(script_dir, '../datasets/all_trips.csv')
 output_path = os.path.join(script_dir, '../small_datasets/some_predicted_rides.csv')
-output_path1 = os.path.join(script_dir, '../small_datasets/some_predicted_rides1.csv')
+output_path0 = os.path.join(script_dir, '../small_datasets/descriptive_rides.csv')
 output_path2 = os.path.join(script_dir, '../small_datasets/rebalanced0.2.csv')
+output_path4 = os.path.join(script_dir, '../small_datasets/rebalanced0.4.csv')
+output_path6 = os.path.join(script_dir, '../small_datasets/rebalanced0.6.csv')
+output_path8 = os.path.join(script_dir, '../small_datasets/rebalanced0.8.csv')
+output_path100 = os.path.join(script_dir, '../small_datasets/rebalanced100.csv')
+
+
+probability_to_redirect = 1.0
+
 
 def main():
-    num_of_rides = 5000
 
     # Load the dataset
     df = pd.read_csv(file_path)

@@ -3,7 +3,7 @@ import threading
 from dash import Dash, dcc, html, Input, Output, State
 import plotly.graph_objects as go
 from utils import rides_data, stations  # Assuming stations is a shared list of Station objects
-from utils import calculate_availability_rate
+from utils import calculate_availability_rate, get_insights
 
 # Dash App Initialization
 app = Dash(__name__)
@@ -27,7 +27,7 @@ def create_map_figure(center=None, zoom=None):
 
     max_bikes = max(bike_counts) if bike_counts else 1  # Avoid division by zero
     size_map = [
-        7 + (count / max_bikes) * 18  # Scale size proportionally between 7 and 25
+        5 + (count / max_bikes) * 25  # Scale size proportionally between 5 and 30
         for count in bike_counts
     ]
 
@@ -150,7 +150,7 @@ def simulation_loop():
 
         # start counting time
         start_time = time.time()
-        
+
         # Simulate rides
         for t, ride in rides_data.iterrows():
             for station in stations:
@@ -180,8 +180,11 @@ def simulation_loop():
 
         # Calculate total elapsed time
         total_elapsed_time = time.time() - start_time
-        print(f"Simulation completed in {total_elapsed_time:.2f} seconds")
+        print(f"\nSimulation completed in {total_elapsed_time:.2f} seconds")
         print(f"System-wide Availability Rate: {availability_rate:.2%}")
+
+        get_insights() # Get insights of stations after simulation
+        
 
 
     except KeyboardInterrupt:
